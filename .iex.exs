@@ -1,0 +1,14 @@
+alias Terminal.App
+alias Terminal.Tty
+alias Terminal.Term
+alias Terminal.Theme
+alias Terminal.Canvas
+alias Terminal.Runner
+alias Terminal.Runnable
+alias Terminal.Socket
+alias Terminal.Linux
+alias Terminal.Code
+alias Terminal.React
+alias Terminal.State
+alias Terminal.Check
+alias Terminal.Demo
