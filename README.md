@@ -48,3 +48,6 @@ Process.exit pid, :kill
 - Explicit screen redraw
 - XTerm support
 - Term behaviour
+- Zero index coordinates
+- Tab index testing
+- Tab navigation testing

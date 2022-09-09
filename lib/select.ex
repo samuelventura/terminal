@@ -180,6 +180,7 @@ defmodule Terminal.Select do
     Check.assert_boolean(:focused, state.focused)
     Check.assert_atom(:theme, state.theme)
     Check.assert_integer(:findex, state.findex)
+    Check.assert_integer(:offset, state.offset)
     Check.assert_integer(:selected, state.selected)
     Check.assert_function(:on_change, state.on_change, 2)
     state

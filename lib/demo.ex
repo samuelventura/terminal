@@ -6,6 +6,7 @@ defmodule Terminal.Demo do
   alias Terminal.Input
   alias Terminal.Frame
   alias Terminal.Select
+  alias Terminal.Radio
 
   def init(opts) do
     size = Keyword.fetch!(opts, :size)
@@ -25,14 +26,16 @@ defmodule Terminal.Demo do
     tab_size = {40, 6}
 
     markup :main, Panel, size: size do
+      markup(:label, Label, text: "Terminal UIs with Reactish API - Demo")
+
       markup(:list_frame, Frame,
-        origin: {1, 1},
+        origin: {0, 1},
         size: {12, 6},
         text: "Demos"
       )
 
       markup(:select, Select,
-        origin: {2, 2},
+        origin: {1, 2},
         size: {10, 4},
         selected: index,
         on_change: on_change,
@@ -40,7 +43,7 @@ defmodule Terminal.Demo do
       )
 
       markup(:tab_frame, Frame,
-        origin: {13, 1},
+        origin: {12, 1},
         size: {42, 8},
         text: name
       )
@@ -103,27 +106,52 @@ defmodule Terminal.Demo do
     end
   end
 
-  def network(react, %{visible: visible, origin: origin, size: size}) do
-    {user, set_user} = use_state(react, :user, "")
+  def network(react, %{visible: visible, origin: origin, size: {w, _h} = size}) do
+    {type, set_type} = use_state(react, :type, "DHCP")
+    {address, set_address} = use_state(react, :address, "")
+    {netmask, set_netmask} = use_state(react, :netmask, "")
 
-    on_change = fn text -> set_user.(text) end
+    on_type = fn _index, name -> set_type.(name) end
+
+    on_save = fn ->
+      case type do
+        "DHCP" -> IO.inspect("Saved: #{type}")
+        _ -> IO.inspect("Saved: #{type} ip:#{address} nm:#{netmask}")
+      end
+    end
 
     markup :main, Panel, visible: visible, origin: origin, size: size do
-      markup(:label, Label, origin: {0, 0}, size: {22, 1}, text: "Welcome #{user}!")
+      markup(:label, Label, origin: {0, 0}, size: {22, 1}, text: "Interface eth0")
 
-      markup(:input_label, Label, origin: {0, 1}, text: "Username:")
-      markup(:password_label, Label, origin: {0, 2}, text: "Password:")
-
-      markup(:input, Input,
-        origin: {10, 1},
-        size: {12, 1},
-        on_change: on_change
+      markup(:type, Radio,
+        origin: {0, 1},
+        size: {w, 1},
+        items: ["DHCP", "Manual"],
+        on_change: on_type
       )
 
-      markup(:password, Input,
-        origin: {10, 2},
+      markup :main, Panel, visible: type == "Manual", origin: {0, 2}, size: {w, 2} do
+        markup(:address_label, Label, origin: {0, 0}, text: "Address:")
+        markup(:netmask_label, Label, origin: {0, 1}, text: "Netmask:")
+
+        markup(:address, Input,
+          origin: {9, 0},
+          size: {12, 1},
+          on_change: set_address
+        )
+
+        markup(:netmask, Input,
+          origin: {9, 1},
+          size: {12, 1},
+          on_change: set_netmask
+        )
+      end
+
+      markup(:save, Button,
+        origin: {0, 4},
         size: {12, 1},
-        password: true
+        text: "Save",
+        on_click: on_save
       )
     end
   end

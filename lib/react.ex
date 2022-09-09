@@ -38,7 +38,7 @@ defmodule Terminal.React do
     list
   end
 
-  defp inner_to_list({:__block__, [], list}) when is_list(list) do
+  defp inner_to_list({:__block__, _, list}) when is_list(list) do
     inner_to_list(list)
   end
 
