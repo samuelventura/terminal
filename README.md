@@ -2,6 +2,8 @@
 
 Elixir Terminal UIs with Reactish API
 
+![image](https://user-images.githubusercontent.com/4142710/189275618-cd1acb2e-8023-4892-85e1-0c850ecb4275.png)
+
 ## Development
 
 ```elixir
