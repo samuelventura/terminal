@@ -64,8 +64,8 @@ defmodule Terminal.Label do
     Check.assert_point2d(:origin, state.origin)
     Check.assert_point2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
-    Check.assert_atom(:bgcolor, state.bgcolor)
-    Check.assert_atom(:fgcolor, state.fgcolor)
+    Check.assert_inlist(:bgcolor, state.bgcolor, Theme.colors())
+    Check.assert_inlist(:fgcolor, state.fgcolor, Theme.colors())
     state
   end
 end

@@ -33,8 +33,8 @@ defmodule LabelTest do
     assert Label.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Label.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
     assert Label.update(initial, visible: false) == %{initial | visible: false}
-    assert Label.update(initial, bgcolor: :bgcolor) == %{initial | bgcolor: :bgcolor}
-    assert Label.update(initial, fgcolor: :fgcolor) == %{initial | fgcolor: :fgcolor}
+    assert Label.update(initial, bgcolor: :red) == %{initial | bgcolor: :red}
+    assert Label.update(initial, fgcolor: :blue) == %{initial | fgcolor: :blue}
 
     # nops
     assert Label.handle(%{}, nil) === {%{}, nil}

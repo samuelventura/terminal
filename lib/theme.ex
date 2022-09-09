@@ -1,4 +1,24 @@
 defmodule Terminal.Theme do
+  def colors(),
+    do: [
+      :black,
+      :red,
+      :green,
+      :yellow,
+      :blue,
+      :magenta,
+      :cyan,
+      :white,
+      :bblack,
+      :bred,
+      :bgreen,
+      :byellow,
+      :bblue,
+      :bmagenta,
+      :bcyan,
+      :bwhite
+    ]
+
   def get(:default) do
     %{
       back_readonly: :black,

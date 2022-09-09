@@ -31,7 +31,7 @@ defmodule Terminal.Check do
 
   def assert_inlist(name, value, list) do
     case Enum.find_index(list, fn e -> e == value end) do
-      nil -> raise("#{name} not in #{list}: #{inspect(value)}")
+      nil -> raise("#{name} not in #{inspect(list)}: #{inspect(value)}")
       _ -> nil
     end
   end
