@@ -1,9 +1,10 @@
 defmodule Terminal.Frame do
   @behaviour Terminal.Window
+  alias Terminal.Check
   alias Terminal.Canvas
   alias Terminal.Theme
 
-  def init(opts) do
+  def init(opts \\ []) do
     size = Keyword.get(opts, :size, {0, 0})
     text = Keyword.get(opts, :text, "")
     style = Keyword.get(opts, :style, :single)
@@ -15,7 +16,7 @@ defmodule Terminal.Frame do
     bgcolor = Keyword.get(opts, :bgcolor, theme.back_readonly)
     fgcolor = Keyword.get(opts, :fgcolor, theme.fore_readonly)
 
-    %{
+    state = %{
       size: size,
       style: style,
       visible: visible,
@@ -25,6 +26,8 @@ defmodule Terminal.Frame do
       bgcolor: bgcolor,
       fgcolor: fgcolor
     }
+
+    check(state)
   end
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
@@ -37,7 +40,8 @@ defmodule Terminal.Frame do
 
   def update(state, props) do
     props = Enum.into(props, %{})
-    Map.merge(state, props)
+    state = Map.merge(state, props)
+    check(state)
   end
 
   def handle(state, _event), do: {state, nil}
@@ -98,6 +102,18 @@ defmodule Terminal.Frame do
       end
 
     Canvas.write(canvas, text)
+  end
+
+  defp check(state) do
+    Check.assert_string(:text, state.text)
+    Check.assert_point2d(:origin, state.origin)
+    Check.assert_point2d(:size, state.size)
+    Check.assert_boolean(:visible, state.visible)
+    Check.assert_boolean(:bracket, state.bracket)
+    Check.assert_atom(:bgcolor, state.bgcolor)
+    Check.assert_atom(:fgcolor, state.fgcolor)
+    Check.assert_inlist(:style, state.style, [:single, :double])
+    state
   end
 
   # https://en.wikipedia.org/wiki/Box-drawing_character

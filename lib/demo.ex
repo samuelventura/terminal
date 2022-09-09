@@ -3,6 +3,7 @@ defmodule Terminal.Demo do
   alias Terminal.Panel
   alias Terminal.Label
   alias Terminal.Button
+  alias Terminal.Input
   alias Terminal.Frame
   alias Terminal.Select
 
@@ -12,30 +13,41 @@ defmodule Terminal.Demo do
   end
 
   def main(react, %{size: size}) do
-    {demo, set_demo} = use_state(react, :demo, 0)
+    {index, set_index} = use_state(react, :index, 0)
+    {name, set_name} = use_state(react, :name, "Counter")
 
-    on_change = fn index, _ -> set_demo.(index) end
+    on_change = fn index, name ->
+      set_index.(index)
+      set_name.(name)
+    end
 
-    tab_origin = {13, 0}
-    tab_size = {20, 20}
+    tab_origin = {14, 2}
+    tab_size = {40, 6}
 
     markup :main, Panel, size: size do
-      markup(:frame, Frame,
-        origin: {0, 0},
-        size: {12, 5},
+      markup(:list_frame, Frame,
+        origin: {1, 1},
+        size: {12, 6},
         text: "Demos"
       )
 
       markup(:select, Select,
-        origin: {1, 1},
-        size: {10, 3},
-        selected: demo,
+        origin: {2, 2},
+        size: {10, 4},
+        selected: index,
         on_change: on_change,
-        items: ["Counter1", "Counter2"]
+        items: ["Counter", "Login", "Network"]
       )
 
-      markup(:counter1, &counter/2, visible: demo == 0, origin: tab_origin, size: tab_size)
-      markup(:counter2, &counter/2, visible: demo == 1, origin: tab_origin, size: tab_size)
+      markup(:tab_frame, Frame,
+        origin: {13, 1},
+        size: {42, 8},
+        text: name
+      )
+
+      markup(:counter, &counter/2, visible: index == 0, origin: tab_origin, size: tab_size)
+      markup(:login, &login/2, visible: index == 1, origin: tab_origin, size: tab_size)
+      markup(:network, &network/2, visible: index == 2, origin: tab_origin, size: tab_size)
     end
   end
 
@@ -62,6 +74,56 @@ defmodule Terminal.Demo do
         text: "Decrement",
         enabled: rem(count, 3) != 0,
         on_click: decrement
+      )
+    end
+  end
+
+  def login(react, %{visible: visible, origin: origin, size: size}) do
+    {user, set_user} = use_state(react, :user, "")
+
+    on_change = fn text -> set_user.(text) end
+
+    markup :main, Panel, visible: visible, origin: origin, size: size do
+      markup(:label, Label, origin: {0, 0}, size: {22, 1}, text: "Welcome #{user}!")
+
+      markup(:input_label, Label, origin: {0, 1}, text: "Username:")
+      markup(:password_label, Label, origin: {0, 2}, text: "Password:")
+
+      markup(:input, Input,
+        origin: {10, 1},
+        size: {12, 1},
+        on_change: on_change
+      )
+
+      markup(:password, Input,
+        origin: {10, 2},
+        size: {12, 1},
+        password: true
+      )
+    end
+  end
+
+  def network(react, %{visible: visible, origin: origin, size: size}) do
+    {user, set_user} = use_state(react, :user, "")
+
+    on_change = fn text -> set_user.(text) end
+
+    markup :main, Panel, visible: visible, origin: origin, size: size do
+      markup(:label, Label, origin: {0, 0}, size: {22, 1}, text: "Welcome #{user}!")
+
+      markup(:input_label, Label, origin: {0, 1}, text: "Username:")
+      markup(:password_label, Label, origin: {0, 2}, text: "Password:")
+
+      markup(:input, Input,
+        origin: {10, 1},
+        size: {12, 1},
+        on_change: on_change
+      )
+
+      markup(:password, Input,
+        origin: {10, 2},
+        size: {12, 1},
+        password: true
       )
     end
   end

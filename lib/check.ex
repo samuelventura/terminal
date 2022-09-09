@@ -29,6 +29,13 @@ defmodule Terminal.Check do
     if !is_list(value), do: raise("#{name} not list: #{inspect(value)}")
   end
 
+  def assert_inlist(name, value, list) do
+    case Enum.find_index(list, fn e -> e == value end) do
+      nil -> raise("#{name} not in #{list}: #{inspect(value)}")
+      _ -> nil
+    end
+  end
+
   def assert_point2d(name, value) do
     case value do
       {x, y} when is_integer(x) and is_integer(y) -> nil

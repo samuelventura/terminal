@@ -1,9 +1,11 @@
 defmodule Terminal.Input do
   @behaviour Terminal.Window
+  alias Terminal.Check
+  alias Terminal.Input
   alias Terminal.Canvas
   alias Terminal.Theme
 
-  def init(opts) do
+  def init(opts \\ []) do
     text = Keyword.get(opts, :text, "")
     size = Keyword.get(opts, :size, {String.length(text), 1})
     visible = Keyword.get(opts, :visible, true)
@@ -14,8 +16,9 @@ defmodule Terminal.Input do
     origin = Keyword.get(opts, :origin, {0, 0})
     findex = Keyword.get(opts, :findex, 0)
     password = Keyword.get(opts, :password, false)
+    on_change = Keyword.get(opts, :on_change, &Input.nop/1)
 
-    %{
+    state = %{
       focused: focused,
       cursor: cursor,
       findex: findex,
@@ -25,29 +28,50 @@ defmodule Terminal.Input do
       theme: theme,
       text: text,
       size: size,
-      origin: origin
+      origin: origin,
+      on_change: on_change
     }
+
+    check(state)
   end
+
+  def nop(_value), do: nil
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
+  def focusable(%{on_change: nil}), do: false
   def focusable(%{findex: findex}), do: findex >= 0
   def focused(%{focused: focused}), do: focused
-  def focused(state, focused), do: Map.put(state, :focused, focused)
+  def focused(state, focused), do: %{state | focused: focused}
   def findex(%{findex: findex}), do: findex
   def children(_state), do: []
   def children(state, _), do: state
 
-  def update(state, props) do
+  def update(%{text: text} = state, props) do
     props = Enum.into(props, %{})
-    props = Map.drop(props, [:focused])
+    props = Map.drop(props, [:focused, :cursor])
+
+    props =
+      case props do
+        %{text: ^text} ->
+          props
+
+        %{text: text} ->
+          cursor = String.length(text)
+          props = Map.put(props, :text, text)
+          props = Map.put(props, :cursor, cursor)
+          %{props | text: text}
+
+        _ ->
+          props
+      end
+
     Map.merge(state, props)
   end
 
   def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, "\n"}), do: {state, {:focus, :next}}
 
   def handle(%{cursor: cursor} = state, {:key, _, :arrow_left}) do
     cursor = if cursor > 0, do: cursor - 1, else: cursor
@@ -74,47 +98,53 @@ defmodule Terminal.Input do
   end
 
   def handle(%{cursor: cursor, text: text} = state, {:key, _, :backspace}) do
-    {prefix, suffix} = String.split_at(text, cursor)
+    case cursor do
+      0 ->
+        {state, nil}
 
-    {prefix, cursor} =
-      case cursor do
-        0 ->
-          {prefix, cursor}
-
-        _ ->
-          {prefix, _} = String.split_at(prefix, cursor - 1)
-          {prefix, cursor - 1}
-      end
-
-    text = "#{prefix}#{suffix}"
-    state = %{state | text: text, cursor: cursor}
-    {state, nil}
+      _ ->
+        {prefix, suffix} = String.split_at(text, cursor)
+        {prefix, _} = String.split_at(prefix, cursor - 1)
+        cursor = cursor - 1
+        text = "#{prefix}#{suffix}"
+        state.on_change.(text)
+        state = %{state | text: text, cursor: cursor}
+        {state, {:text, text}}
+    end
   end
 
   def handle(%{cursor: cursor, text: text} = state, {:key, _, :delete}) do
-    {prefix, suffix} = String.split_at(text, cursor)
-    suffix = String.slice(suffix, 1..String.length(suffix))
-    text = "#{prefix}#{suffix}"
-    state = %{state | text: text}
-    {state, nil}
+    count = String.length(text)
+
+    case cursor do
+      ^count ->
+        {state, nil}
+
+      _ ->
+        {prefix, suffix} = String.split_at(text, cursor)
+        suffix = String.slice(suffix, 1..String.length(suffix))
+        text = "#{prefix}#{suffix}"
+        state.on_change.(text)
+        state = %{state | text: text}
+        {state, {:text, text}}
+    end
   end
 
   def handle(%{cursor: cursor, text: text} = state, {:key, 0, data}) when is_binary(data) do
     %{size: {width, _}} = state
     count = String.length(text)
 
-    state =
-      case count do
-        ^width ->
-          state
+    case count do
+      ^width ->
+        {state, nil}
 
-        _ ->
-          {prefix, suffix} = String.split_at(text, cursor)
-          text = "#{prefix}#{data}#{suffix}"
-          %{state | text: text, cursor: cursor + 1}
-      end
-
-    {state, nil}
+      _ ->
+        {prefix, suffix} = String.split_at(text, cursor)
+        text = "#{prefix}#{data}#{suffix}"
+        state.on_change.(text)
+        state = %{state | text: text, cursor: cursor + 1}
+        {state, {:text, text}}
+    end
   end
 
   def handle(state, _event), do: {state, nil}
@@ -134,14 +164,20 @@ defmodule Terminal.Input do
 
     theme = Theme.get(theme)
     canvas = Canvas.clear(canvas, :colors)
+    empty = String.length(text) == 0
+    dotted = empty && !focused && enabled
 
     canvas =
-      case {enabled, focused} do
-        {false, _} ->
+      case {enabled, focused, dotted} do
+        {_, _, true} ->
+          canvas = Canvas.color(canvas, :fgcolor, theme.fore_readonly)
+          Canvas.color(canvas, :bgcolor, theme.back_readonly)
+
+        {false, _, _} ->
           canvas = Canvas.color(canvas, :fgcolor, theme.fore_disabled)
           Canvas.color(canvas, :bgcolor, theme.back_disabled)
 
-        {true, true} ->
+        {true, true, _} ->
           canvas = Canvas.color(canvas, :fgcolor, theme.fore_focused)
           Canvas.color(canvas, :bgcolor, theme.back_focused)
 
@@ -151,9 +187,10 @@ defmodule Terminal.Input do
       end
 
     text =
-      case password do
-        false -> text
-        true -> String.duplicate("*", String.length(text))
+      case {password, dotted} do
+        {_, true} -> String.duplicate("_", width)
+        {true, _} -> String.duplicate("*", String.length(text))
+        _ -> text
       end
 
     text = String.pad_trailing(text, width)
@@ -167,5 +204,20 @@ defmodule Terminal.Input do
       _ ->
         canvas
     end
+  end
+
+  defp check(state) do
+    Check.assert_point2d(:origin, state.origin)
+    Check.assert_point2d(:size, state.size)
+    Check.assert_boolean(:visible, state.visible)
+    Check.assert_boolean(:enabled, state.enabled)
+    Check.assert_boolean(:focused, state.focused)
+    Check.assert_boolean(:password, state.password)
+    Check.assert_atom(:theme, state.theme)
+    Check.assert_integer(:findex, state.findex)
+    Check.assert_string(:text, state.text)
+    Check.assert_function(:on_change, state.on_change, 1)
+    Check.assert_integer(:cursor, state.cursor)
+    state
   end
 end

@@ -32,3 +32,19 @@ Process.exit pid, :kill
     - Corollary: Select is not focusable if on_change is nil
 - Function components external children must be ignored
 - No mixing on logic and markup allowed. State and logic to the top, markup to the bottom.
+
+## Future
+
+- Mouse
+- Selection
+- Clipboard
+- Modals
+- TextArea
+- Input scrolling
+- Input validation
+- Reversed tab
+- Commands
+- Subscriptions
+- Explicit screen redraw
+- XTerm support
+- Term behaviour

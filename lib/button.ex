@@ -92,7 +92,7 @@ defmodule Terminal.Button do
     Canvas.write(canvas, text)
   end
 
-  def check(state) do
+  defp check(state) do
     Check.assert_string(:text, state.text)
     Check.assert_point2d(:origin, state.origin)
     Check.assert_point2d(:size, state.size)

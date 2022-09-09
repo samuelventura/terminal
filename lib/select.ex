@@ -113,14 +113,8 @@ defmodule Terminal.Select do
     end
   end
 
-  def handle(state, {:key, _, "\r"}) do
-    %{map: map, selected: selected} = state
-    item = map[selected]
-    state.on_change.(selected, item)
-    {state, {:item, selected, item}}
-  end
-
   def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
   def handle(state, _event), do: {state, nil}
 
   def render(%{visible: false}, canvas), do: canvas
@@ -176,7 +170,7 @@ defmodule Terminal.Select do
     end
   end
 
-  def check(state) do
+  defp check(state) do
     Check.assert_map(:map, state.map)
     Check.assert_integer(:count, state.count)
     Check.assert_point2d(:origin, state.origin)

@@ -61,16 +61,13 @@ defmodule SelectTest do
            }
 
     assert Select.handle(%{}, {:key, nil, "\t"}) == {%{}, {:focus, :next}}
-
-    assert Select.handle(%{initial | on_change: on_change}, {:key, nil, "\r"}) ==
-             {%{initial | on_change: on_change}, {:item, 0, nil}}
+    assert Select.handle(%{}, {:key, nil, "\r"}) == {%{}, {:focus, :next}}
 
     assert Select.handle(initial, {:key, nil, :arrow_up}) == {initial, nil}
     assert Select.handle(initial, {:key, nil, :arrow_down}) == {%{initial | offset: 1}, nil}
 
     # up/down/enter
     dual = Select.init(items: ["item0", "item1"], size: {0, 2}, on_change: on_change)
-    assert Select.handle(dual, {:key, nil, "\r"}) == {dual, {:item, 0, "item0"}}
     assert Select.handle(dual, {:key, nil, :arrow_up}) == {dual, nil}
 
     assert Select.handle(%{dual | selected: 1}, {:key, nil, :arrow_down}) ==
