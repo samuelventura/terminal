@@ -17,8 +17,13 @@ defmodule Terminal.React do
 
   def use_state(react, key, initial) do
     keys = State.key(react, key)
-    current = State.use(react, keys, initial)
-    {current, fn value -> State.put(react, keys, value) end}
+    current = State.use_state(react, keys, initial)
+    {current, fn value -> State.put_state(react, keys, value) end}
+  end
+
+  def use_effect(react, key, deps, function) do
+    keys = State.key(react, key)
+    State.use_effect(react, keys, function, deps)
   end
 
   defp inner_to_list(list) when is_list(list) do

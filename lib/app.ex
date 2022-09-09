@@ -21,6 +21,8 @@ defmodule Terminal.App do
     markup = func.(react, opts)
     {key, mote} = realize(react, markup, %{}, focused: true, root: true)
     state = %{func: func, opts: opts, key: key, mote: mote, react: react}
+    IO.inspect(State.get_effects(react))
+    State.reset_changes(react)
     {state, nil}
   end
 
@@ -28,10 +30,13 @@ defmodule Terminal.App do
     {mote, _cmd} = mote_handle(mote, event)
     # IO.inspect({event, cmd})
     current = mote_to_map(mote, [key], %{})
-    State.reset(react)
+    cycle = State.reset_state(react)
+    IO.inspect("cycle #{cycle}")
     markup = func.(react, opts)
     {key, mote} = realize(react, markup, current, focused: true, root: true)
     state = %{func: func, opts: opts, key: key, mote: mote, react: react}
+    IO.inspect(State.get_effects(react))
+    State.reset_changes(react)
     {state, nil}
   end
 

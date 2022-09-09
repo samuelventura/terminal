@@ -53,3 +53,7 @@ Process.exit pid, :kill
 - Zero index coordinates
 - Tab index testing
 - Tab navigation testing
+- List rendering
+- Conditional rendering
+
+

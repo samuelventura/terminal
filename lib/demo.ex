@@ -110,15 +110,24 @@ defmodule Terminal.Demo do
     {type, set_type} = use_state(react, :type, "DHCP")
     {address, set_address} = use_state(react, :address, "")
     {netmask, set_netmask} = use_state(react, :netmask, "")
+    {save, set_save} = use_state(react, :save, 0)
 
     on_type = fn _index, name -> set_type.(name) end
+    on_save = fn -> set_save.(save + 1) end
 
-    on_save = fn ->
-      case type do
-        "DHCP" -> IO.inspect("Saved: #{type}")
-        _ -> IO.inspect("Saved: #{type} ip:#{address} nm:#{netmask}")
-      end
-    end
+    use_effect(react, :always, nil, fn ->
+      IO.inspect("Always effect!")
+    end)
+
+    use_effect(react, :once, [], fn ->
+      IO.inspect("Once effect!")
+    end)
+
+    use_effect(react, :save, [:save], fn ->
+      # this runs in its own process
+      IO.inspect("Save effect!")
+      IO.inspect("#{save}: #{type} ip:#{address} nm:#{netmask}")
+    end)
 
     markup :main, Panel, visible: visible, origin: origin, size: size do
       markup(:label, Label, origin: {0, 0}, size: {22, 1}, text: "Interface eth0")
