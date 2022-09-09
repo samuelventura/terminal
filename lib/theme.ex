@@ -1,7 +1,5 @@
 defmodule Terminal.Theme do
-  def get(:default), do: get(:blue)
-
-  def get(:blue) do
+  def get(:default) do
     %{
       back_readonly: :black,
       fore_readonly: :bblack,
@@ -9,8 +7,8 @@ defmodule Terminal.Theme do
       fore_editable: :white,
       back_disabled: :black,
       fore_disabled: :bblack,
-      back_selected: :black,
-      fore_selected: :bblue,
+      back_selected: :white,
+      fore_selected: :black,
       back_focused: :blue,
       fore_focused: :white,
       back_notice: :blue,
