@@ -10,10 +10,13 @@ defmodule Terminal.State do
           keys: [],
           state: %{},
           prestate: %{},
+          callbacks: %{},
           changes: %{},
           effects: %{},
           ieffects: [],
-          preffects: %{}
+          preffects: %{},
+          timers: %{},
+          timerc: 0
         }
       end)
 
@@ -54,7 +57,7 @@ defmodule Terminal.State do
     end)
   end
 
-  def put_state(agent, key, value) do
+  def set_state(agent, key, value) do
     :ok =
       Agent.update(agent, fn map ->
         state = Map.fetch!(map, :state)
@@ -89,14 +92,33 @@ defmodule Terminal.State do
          keys: [],
          state: %{},
          prestate: map.state,
+         callbacks: %{},
          changes: map.changes,
          effects: %{},
          ieffects: [],
-         preffects: map.effects
+         preffects: map.effects,
+         timers: map.timers,
+         timerc: map.timerc
        }}
     end)
   end
 
+  def use_callback(agent, key, function) do
+    :ok =
+      Agent.update(agent, fn map ->
+        callbacks = Map.fetch!(map, :callbacks)
+        if Map.has_key?(callbacks, key), do: raise("Duplicated callback key: #{inspect(key)}")
+        callbacks = Map.put(callbacks, key, function)
+        map = Map.put(map, :callbacks, callbacks)
+        map
+      end)
+  end
+
+  def get_callback(agent, key) do
+    Agent.get(agent, fn map -> map.callbacks[key] end)
+  end
+
+  @spec use_effect(atom | pid | {atom, any} | {:via, atom, any}, any, any, any) :: :ok
   def use_effect(agent, key, function, deps) do
     :ok =
       Agent.update(agent, fn map ->
@@ -136,5 +158,40 @@ defmodule Terminal.State do
 
   def count_changes(agent) do
     Agent.get(agent, fn map -> map_size(map.changes) end)
+  end
+
+  def new_timer(agent) do
+    Agent.get_and_update(agent, fn map ->
+      id = map.timerc
+
+      map =
+        Map.update!(map, :timers, fn timers ->
+          Map.put(timers, id, nil)
+        end)
+
+      {id, %{map | timerc: id + 1}}
+    end)
+  end
+
+  def get_timer(agent, id) do
+    Agent.get(agent, fn map -> map.timers[id] end)
+  end
+
+  def set_timer(agent, id, payload) do
+    :ok =
+      Agent.update(agent, fn map ->
+        Map.update!(map, :timers, fn timers ->
+          Map.update!(timers, id, fn _ -> payload end)
+        end)
+      end)
+  end
+
+  def remove_timer(agent, id) do
+    :ok =
+      Agent.update(agent, fn map ->
+        Map.update!(map, :timers, fn timers ->
+          Map.delete(timers, id)
+        end)
+      end)
   end
 end

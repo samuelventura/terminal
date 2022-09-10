@@ -18,10 +18,7 @@ defmodule Terminal.App do
   def init(func, opts) do
     opts = Enum.into(opts, %{})
     react = State.init()
-    markup = func.(react, opts)
-    {key, mote} = realize(react, markup, %{}, focused: true, root: true)
-    state = %{func: func, opts: opts, key: key, mote: mote, react: react}
-    exec_effects(state)
+    exec_realize(react, func, opts, %{})
   end
 
   def handle(%{func: func, opts: opts, key: key, mote: mote, react: react}, event) do
@@ -43,14 +40,18 @@ defmodule Terminal.App do
     current = mote_to_map(mote, [key], %{})
     _cycle = State.reset_state(react)
     # IO.inspect("cycle #{cycle}")
-    markup = func.(react, opts)
-    {key, mote} = realize(react, markup, current, focused: true, root: true)
-    state = %{func: func, opts: opts, key: key, mote: mote, react: react}
-    exec_effects(state)
+    exec_realize(react, func, opts, current)
   end
 
   def render(%{mote: {module, state}}, canvas), do: module.render(state, canvas)
   def execute(_cmd), do: nil
+
+  defp exec_realize(react, func, opts, map) do
+    markup = func.(react, opts)
+    {key, mote} = realize(react, markup, map, focused: true, root: true)
+    state = %{func: func, opts: opts, key: key, mote: mote, react: react}
+    exec_effects(state)
+  end
 
   defp exec_effects(%{react: react} = state) do
     effects = State.get_effects(react)

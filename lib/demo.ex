@@ -15,7 +15,7 @@ defmodule Terminal.Demo do
 
   def main(react, %{size: size}) do
     {index, set_index} = use_state(react, :index, 0)
-    {name, set_name} = use_state(react, :name, "Counter")
+    {name, set_name} = use_state(react, :name, "Timer")
 
     on_change = fn index, name ->
       set_index.(index)
@@ -39,7 +39,7 @@ defmodule Terminal.Demo do
         size: {10, 4},
         selected: index,
         on_change: on_change,
-        items: ["Counter", "Login", "Network"]
+        items: ["Timer", "Counter", "Network", "Password"]
       )
 
       markup(:tab_frame, Frame,
@@ -48,98 +48,110 @@ defmodule Terminal.Demo do
         text: name
       )
 
-      markup(:counter, &counter/2, visible: index == 0, origin: tab_origin, size: tab_size)
-      markup(:login, &login/2, visible: index == 1, origin: tab_origin, size: tab_size)
+      markup(:timer, &timer/2, visible: index == 0, origin: tab_origin, size: tab_size)
+      markup(:counter, &counter/2, visible: index == 1, origin: tab_origin, size: tab_size)
       markup(:network, &network/2, visible: index == 2, origin: tab_origin, size: tab_size)
+      markup(:login, &password/2, visible: index == 3, origin: tab_origin, size: tab_size)
+    end
+  end
+
+  def timer(react, %{visible: visible, origin: origin, size: size}) do
+    {count, set_count} = use_state(react, :count, 0)
+    {timer, set_timer} = use_state(react, :timer, nil)
+
+    callback =
+      use_callback(react, :timer, fn ->
+        log("Timer #{count}")
+        set_count.(count + 1)
+      end)
+
+    on_start = fn ->
+      if timer == nil do
+        log("Starting timer...")
+        timer = set_interval(react, 500, callback)
+        set_timer.(timer)
+      end
+    end
+
+    on_stop = fn ->
+      if timer != nil do
+        log("Stopping timer...")
+        clear_interval(timer)
+        set_timer.(nil)
+      end
+    end
+
+    on_reset = fn -> set_count.(0) end
+
+    markup :main, Panel, visible: visible, origin: origin, size: size do
+      markup(:label, Label, origin: {0, 0}, size: {12, 1}, text: "#{count}")
+
+      markup(:start, Button,
+        origin: {0, 1},
+        size: {12, 1},
+        text: "Start",
+        on_click: on_start
+      )
+
+      markup(:stop, Button,
+        origin: {0, 2},
+        size: {12, 1},
+        text: "Stop",
+        on_click: on_stop
+      )
+
+      markup(:reset, Button,
+        origin: {0, 3},
+        size: {12, 1},
+        text: "Reset",
+        on_click: on_reset
+      )
     end
   end
 
   def counter(react, %{visible: visible, origin: origin, size: size}) do
     {count, set_count} = use_state(react, :count, 0)
 
-    increment = fn -> set_count.(count + 1) end
-    decrement = fn -> set_count.(count - 1) end
+    on_increment = fn -> set_count.(count + 1) end
+    on_decrement = fn -> set_count.(count - 1) end
 
     markup :main, Panel, visible: visible, origin: origin, size: size do
       markup(:label, Label, origin: {0, 0}, size: {12, 1}, text: "#{count}")
 
-      markup(:inc, Button,
+      markup(:increment, Button,
         origin: {0, 1},
         size: {12, 1},
         enabled: rem(count, 3) != 2,
         text: "Increment",
-        on_click: increment
+        on_click: on_increment
       )
 
-      markup(:dec, Button,
+      markup(:decrement, Button,
         origin: {0, 2},
         size: {12, 1},
         text: "Decrement",
         enabled: rem(count, 3) != 0,
-        on_click: decrement
-      )
-    end
-  end
-
-  def login(react, %{visible: visible, origin: origin, size: size}) do
-    {user, set_user} = use_state(react, :user, "")
-
-    on_change = fn text -> set_user.(text) end
-
-    markup :main, Panel, visible: visible, origin: origin, size: size do
-      markup(:label, Label, origin: {0, 0}, size: {22, 1}, text: "Welcome #{user}!")
-
-      markup(:input_label, Label, origin: {0, 1}, text: "Username:")
-      markup(:password_label, Label, origin: {0, 2}, text: "Password:")
-
-      markup(:input, Input,
-        origin: {10, 1},
-        size: {12, 1},
-        on_change: on_change
-      )
-
-      markup(:password, Input,
-        origin: {10, 2},
-        size: {12, 1},
-        password: true
+        on_click: on_decrement
       )
     end
   end
 
   def network(react, %{visible: visible, origin: origin, size: {w, _h} = size}) do
-    {count, set_count} = use_state(react, :count, 0)
     {busy, set_busy} = use_state(react, :busy, false)
     {type, set_type} = use_state(react, :type, "DHCP")
     {address, set_address} = use_state(react, :address, "10.77.0.10")
     {netmask, set_netmask} = use_state(react, :netmask, "255.0.0.0")
-    {save, set_save} = use_state(react, :save, 0)
     {{fgc, bgc, msg}, set_result} = use_state(react, :result, {:black, :black, ""})
 
     on_type = fn _index, name -> set_type.(name) end
-    on_save = fn -> set_save.(save + 1) end
 
-    IO.inspect("#{inspect(self())} Rendering count: #{count}")
-
-    use_effect(react, :always, nil, fn ->
-      IO.inspect("#{inspect(self())} Always effect")
-
-      # will retrigger forever without stop condition
-      if count < 5, do: set_count.(count + 1)
-    end)
-
-    use_effect(react, :once, [], fn ->
-      IO.inspect("#{inspect(self())} Once effect")
-    end)
-
-    use_effect(react, :save, [:save], fn ->
-      IO.inspect("#{inspect(self())} Save effect")
-      IO.inspect("#{inspect(self())} #{save}: #{type} ip:#{address} nm:#{netmask}")
+    on_save = fn ->
+      log("On save: #{type} ip:#{address} nm:#{netmask}")
       set_result.({:white, :black, "Saving..."})
       set_busy.(true)
 
       Task.start(fn ->
-        IO.inspect("#{inspect(self())} Save task")
-        IO.inspect("#{inspect(self())} #{save}: #{type} ip:#{address} nm:#{netmask}")
+        log("Save task: #{type} ip:#{address} nm:#{netmask}")
         :timer.sleep(1000)
 
         case type do
@@ -156,7 +168,7 @@ defmodule Terminal.Demo do
 
         set_busy.(false)
       end)
-    end)
+    end
 
     markup :main, Panel, visible: visible, origin: origin, size: size do
       markup(:title, Label, origin: {0, 0}, size: {w, 1}, text: "Interface eth0")
@@ -198,10 +210,42 @@ defmodule Terminal.Demo do
     end
   end
 
+  def password(react, %{visible: visible, origin: origin, size: size}) do
+    {user, set_user} = use_state(react, :user, "")
+
+    on_change = fn text -> set_user.(text) end
+
+    markup :main, Panel, visible: visible, origin: origin, size: size do
+      markup(:label, Label, origin: {0, 0}, size: {22, 1}, text: "Welcome #{user}!")
+
+      markup(:input_label, Label, origin: {0, 1}, text: "Username:")
+      markup(:password_label, Label, origin: {0, 2}, text: "Password:")
+
+      markup(:input, Input,
+        origin: {10, 1},
+        size: {12, 1},
+        on_change: on_change
+      )
+
+      markup(:password, Input,
+        origin: {10, 2},
+        size: {12, 1},
+        password: true
+      )
+    end
+  end
+
   defp valid_ip?(ip) do
     case :inet.parse_address(String.to_charlist(ip)) do
       {:ok, _} -> true
       {:error, _} -> false
     end
+  end
+
+  defp log(msg) do
+    # 2022-09-10 20:02:49.684244Z
+    now = DateTime.utc_now()
+    now = String.slice("#{now}", 11..22)
+    IO.puts("#{now} #{inspect(self())} #{msg}")
   end
 end

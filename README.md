@@ -53,10 +53,10 @@ Process.exit pid, :kill
 - Zero index coordinates
 - Tab index testing
 - Tab navigation testing
+- Arror up/down navigation
 - List rendering
 - Conditional rendering
 - Use effect execution order
 - Use effect cleanups
 - Timer API
-
 
