@@ -1,8 +1,11 @@
 defmodule Terminal.State do
   def init() do
+    pid = self()
+
     {:ok, agent} =
       Agent.start_link(fn ->
         %{
+          pid: pid,
           cycle: 0,
           keys: [],
           state: %{},
@@ -14,6 +17,10 @@ defmodule Terminal.State do
       end)
 
     agent
+  end
+
+  def pid(agent) do
+    Agent.get(agent, fn map -> map.pid end)
   end
 
   def push(agent, key) do
@@ -76,6 +83,7 @@ defmodule Terminal.State do
 
       {cycle,
        %{
+         pid: map.pid,
          cycle: cycle,
          keys: [],
          state: %{},
@@ -117,6 +125,10 @@ defmodule Terminal.State do
   end
 
   def reset_changes(agent) do
-    :ok = Agent.update(agent, fn map -> %{map | changes: %{}} end)
+    :ok = Agent.update(agent, fn map -> Map.put(map, :changes, %{}) end)
+  end
+
+  def count_changes(agent) do
+    Agent.get(agent, fn map -> map_size(map.changes) end)
   end
 end

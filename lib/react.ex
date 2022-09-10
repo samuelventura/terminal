@@ -18,7 +18,20 @@ defmodule Terminal.React do
   def use_state(react, key, initial) do
     keys = State.key(react, key)
     current = State.use_state(react, keys, initial)
-    {current, fn value -> State.put_state(react, keys, value) end}
+
+    {current,
+     fn value ->
+       pid = State.pid(react)
+
+       case self() == pid do
+         true ->
+           State.put_state(react, keys, value)
+
+         false ->
+           callback = fn -> State.put_state(react, keys, value) end
+           send(pid, {:cmd, :callback, callback})
+       end
+     end}
   end
 
   def use_effect(react, key, deps, function) do

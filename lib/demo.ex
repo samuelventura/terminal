@@ -22,7 +22,7 @@ defmodule Terminal.Demo do
       set_name.(name)
     end
 
-    tab_origin = {14, 2}
+    tab_origin = {13, 2}
     tab_size = {40, 6}
 
     markup :main, Panel, size: size do
@@ -107,30 +107,60 @@ defmodule Terminal.Demo do
   end
 
   def network(react, %{visible: visible, origin: origin, size: {w, _h} = size}) do
+    {count, set_count} = use_state(react, :count, 0)
+    {busy, set_busy} = use_state(react, :busy, false)
     {type, set_type} = use_state(react, :type, "DHCP")
-    {address, set_address} = use_state(react, :address, "")
-    {netmask, set_netmask} = use_state(react, :netmask, "")
+    {address, set_address} = use_state(react, :address, "10.77.0.10")
+    {netmask, set_netmask} = use_state(react, :netmask, "255.0.0.0")
     {save, set_save} = use_state(react, :save, 0)
+    {{fgc, bgc, msg}, set_result} = use_state(react, :result, {:black, :black, ""})
 
     on_type = fn _index, name -> set_type.(name) end
     on_save = fn -> set_save.(save + 1) end
 
+    IO.inspect("#{inspect(self())} Rendering count: #{count}")
+
     use_effect(react, :always, nil, fn ->
-      IO.inspect("Always effect!")
+      IO.inspect("#{inspect(self())} Always effect")
+
+      # will retrigger forever without stop condition
+      if count < 5, do: set_count.(count + 1)
     end)
 
     use_effect(react, :once, [], fn ->
-      IO.inspect("Once effect!")
+      IO.inspect("#{inspect(self())} Once effect")
     end)
 
     use_effect(react, :save, [:save], fn ->
-      # this runs in its own process
-      IO.inspect("Save effect!")
-      IO.inspect("#{save}: #{type} ip:#{address} nm:#{netmask}")
+      IO.inspect("#{inspect(self())} Save effect")
+      IO.inspect("#{inspect(self())} #{save}: #{type} ip:#{address} nm:#{netmask}")
+      set_result.({:white, :black, "Saving..."})
+      set_busy.(true)
+
+      Task.start(fn ->
+        IO.inspect("#{inspect(self())} Save task")
+        IO.inspect("#{inspect(self())} #{save}: #{type} ip:#{address} nm:#{netmask}")
+        :timer.sleep(1000)
+
+        case type do
+          "Manual" ->
+            case {valid_ip?(address), valid_ip?(netmask)} do
+              {false, _} -> set_result.({:red, :black, "Invalid address: #{address}"})
+              {_, false} -> set_result.({:red, :black, "Invalid netmask: #{netmask}"})
+              _ -> set_result.({:blue, :black, "Save OK"})
+            end
+
+          "DHCP" ->
+            set_result.({:blue, :black, "Save OK"})
+        end
+
+        set_busy.(false)
+      end)
     end)
 
     markup :main, Panel, visible: visible, origin: origin, size: size do
-      markup(:label, Label, origin: {0, 0}, size: {22, 1}, text: "Interface eth0")
+      markup(:title, Label, origin: {0, 0}, size: {w, 1}, text: "Interface eth0")
+      markup(:result, Label, origin: {0, 5}, size: {w, 1}, text: msg, bgcolor: bgc, fgcolor: fgc)
 
       markup(:type, Radio,
         origin: {0, 1},
@@ -145,13 +175,15 @@ defmodule Terminal.Demo do
 
         markup(:address, Input,
           origin: {9, 0},
-          size: {12, 1},
+          size: {15, 1},
+          text: address,
           on_change: set_address
         )
 
         markup(:netmask, Input,
           origin: {9, 1},
-          size: {12, 1},
+          size: {15, 1},
+          text: netmask,
           on_change: set_netmask
         )
       end
@@ -160,8 +192,16 @@ defmodule Terminal.Demo do
         origin: {0, 4},
         size: {12, 1},
         text: "Save",
+        enabled: !busy,
         on_click: on_save
       )
+    end
+  end
+
+  defp valid_ip?(ip) do
+    case :inet.parse_address(String.to_charlist(ip)) do
+      {:ok, _} -> true
+      {:error, _} -> false
     end
   end
 end

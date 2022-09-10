@@ -55,5 +55,8 @@ Process.exit pid, :kill
 - Tab navigation testing
 - List rendering
 - Conditional rendering
+- Use effect execution order
+- Use effect cleanups
+- Timer API
 
 
