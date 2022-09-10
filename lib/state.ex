@@ -12,6 +12,7 @@ defmodule Terminal.State do
           prestate: %{},
           changes: %{},
           effects: %{},
+          ieffects: [],
           preffects: %{}
         }
       end)
@@ -90,6 +91,7 @@ defmodule Terminal.State do
          prestate: map.state,
          changes: map.changes,
          effects: %{},
+         ieffects: [],
          preffects: map.effects
        }}
     end)
@@ -100,6 +102,7 @@ defmodule Terminal.State do
       Agent.update(agent, fn map ->
         effects = Map.fetch!(map, :effects)
         if Map.has_key?(effects, key), do: raise("Duplicated effect key: #{inspect(key)}")
+        map = Map.update!(map, :ieffects, fn ieffects -> [key | ieffects] end)
         effects = Map.put(effects, key, {function, deps})
         map = Map.put(map, :effects, effects)
         map
@@ -108,9 +111,12 @@ defmodule Terminal.State do
 
   def get_effects(agent) do
     Agent.get(agent, fn map ->
-      effects = Map.fetch!(map, :effects)
       changes = Map.fetch!(map, :changes)
+      effects = Map.fetch!(map, :effects)
+      ieffects = Map.fetch!(map, :ieffects)
       preffects = Map.fetch!(map, :preffects)
+
+      effects = for key <- Enum.reverse(ieffects), do: {key, effects[key]}
 
       Enum.filter(effects, fn {key, {_function, deps}} ->
         [_ | parent] = key
