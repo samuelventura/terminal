@@ -33,13 +33,11 @@ defmodule Terminal.App do
 
         _ ->
           {mote, _cmd} = mote_handle(mote, event)
-          # IO.inspect({event, cmd})
           mote
       end
 
     current = mote_to_map(mote, [key], %{})
-    _cycle = State.reset_state(react)
-    # IO.inspect("cycle #{cycle}")
+    State.reset_state(react)
     exec_realize(react, func, opts, current)
   end
 

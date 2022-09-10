@@ -6,7 +6,6 @@ defmodule Terminal.State do
       Agent.start_link(fn ->
         %{
           pid: pid,
-          cycle: 0,
           keys: [],
           state: %{},
           prestate: %{},
@@ -82,25 +81,22 @@ defmodule Terminal.State do
   end
 
   def reset_state(agent) do
-    Agent.get_and_update(agent, fn map ->
-      cycle = map.cycle + 1
-
-      {cycle,
-       %{
-         pid: map.pid,
-         cycle: cycle,
-         keys: [],
-         state: %{},
-         prestate: map.state,
-         callbacks: %{},
-         changes: map.changes,
-         effects: %{},
-         ieffects: [],
-         preffects: map.effects,
-         timers: map.timers,
-         timerc: map.timerc
-       }}
-    end)
+    :ok =
+      Agent.update(agent, fn map ->
+        %{
+          pid: map.pid,
+          keys: [],
+          state: %{},
+          prestate: map.state,
+          callbacks: %{},
+          changes: map.changes,
+          effects: %{},
+          ieffects: [],
+          preffects: map.effects,
+          timers: map.timers,
+          timerc: map.timerc
+        }
+      end)
   end
 
   def use_callback(agent, key, function) do

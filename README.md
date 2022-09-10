@@ -34,6 +34,7 @@ Process.exit pid, :kill
     - Corollary: Select is not focusable if on_change is nil
 - Function components external children must be ignored
 - No mixing on logic and markup allowed. State and logic to the top, markup to the bottom.
+- Null effects may be executed multiple times in a single user event because of state changes propagation.
 
 ## Future
 

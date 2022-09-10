@@ -211,9 +211,11 @@ defmodule Terminal.Demo do
   end
 
   def password(react, %{visible: visible, origin: origin, size: size}) do
-    {user, set_user} = use_state(react, :user, "")
+    {user, set_user} = use_state(react, :user, "samuel")
+    {password, set_password} = use_state(react, :password, "abc123")
 
-    on_change = fn text -> set_user.(text) end
+    on_user = fn text -> set_user.(text) end
+    on_password = fn text -> set_password.(text) end
 
     markup :main, Panel, visible: visible, origin: origin, size: size do
       markup(:label, Label, origin: {0, 0}, size: {22, 1}, text: "Welcome #{user}!")
@@ -224,13 +226,16 @@ defmodule Terminal.Demo do
       markup(:input, Input,
         origin: {10, 1},
         size: {12, 1},
-        on_change: on_change
+        text: user,
+        on_change: on_user
       )
 
       markup(:password, Input,
         origin: {10, 2},
         size: {12, 1},
-        password: true
+        text: password,
+        password: true,
+        on_change: on_password
       )
     end
   end
