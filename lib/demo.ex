@@ -253,7 +253,7 @@ defmodule Terminal.Demo do
         on_change: on_type
       )
 
-      markup :main, Panel, visible: type == "Manual", origin: {0, 2}, size: {w, 2} do
+      markup :manual, Panel, visible: type == "Manual", origin: {0, 2}, size: {w, 2} do
         markup(:address_label, Label, origin: {0, 0}, text: "Address:")
         markup(:netmask_label, Label, origin: {0, 1}, text: "Netmask:")
 

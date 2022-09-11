@@ -31,11 +31,12 @@ defmodule Terminal.Frame do
   end
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
+  def refocus(state, _), do: state
   def focused(state, _), do: state
   def focused(_), do: false
   def focusable(_), do: false
   def findex(_), do: -1
-  def children(_state), do: []
+  def children(_), do: []
   def children(state, _), do: state
 
   def update(state, props) do

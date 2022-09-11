@@ -54,10 +54,10 @@ defmodule Terminal.Panel do
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
   def bounds(state, {x, y, w, h}), do: state |> Map.put(:size, {w, h}) |> Map.put(:origin, {x, y})
-  def focused(state, focused), do: Map.put(state, :focused, focused) |> focus_update
+  def focused(state, focused), do: Map.put(state, :focused, focused)
   def focused(%{focused: focused}), do: focused
   def findex(%{findex: findex}), do: findex
-  def count(_), do: 0
+  def refocus(state, dir), do: focus_update(state, dir)
 
   def focusable(state) do
     %{
@@ -89,8 +89,8 @@ defmodule Terminal.Panel do
     {mote, event} = mote_handle(mote, event)
 
     case event do
-      {:focus, :next} ->
-        {first, next} = focus_next(state, focus)
+      {:focus, dir} ->
+        {first, next} = focus_next(state, focus, dir)
 
         next =
           case {root, first, next} do
@@ -101,13 +101,13 @@ defmodule Terminal.Panel do
 
         case next do
           nil ->
-            {put_child(state, focus, mote), {:focus, :next}}
+            {put_child(state, focus, mote), {:focus, dir}}
 
           _ ->
-            mote = mote_focused(mote, false)
+            mote = mote_focused(mote, false, dir)
             state = put_child(state, focus, mote)
             mote = get_child(state, next)
-            mote = mote_focused(mote, true)
+            mote = mote_focused(mote, true, dir)
             state = put_child(state, next, mote)
             {Map.put(state, :focus, next), nil}
         end
@@ -133,8 +133,8 @@ defmodule Terminal.Panel do
     end
   end
 
-  defp focus_next(state, focus) do
-    index = focus_list(state)
+  defp focus_next(state, focus, dir) do
+    index = focus_list(state, dir)
 
     case index do
       [] ->
@@ -160,7 +160,12 @@ defmodule Terminal.Panel do
     end
   end
 
-  defp focus_list(state) do
+  defp focus_list(state, :prev) do
+    index = focus_list(state, :next)
+    Enum.reverse(index)
+  end
+
+  defp focus_list(state, :next) do
     %{index: index} = state
     index = Enum.filter(index, &child_focusable(state, &1))
     index = Enum.reverse(index)
@@ -173,7 +178,7 @@ defmodule Terminal.Panel do
     fi1 <= fi2
   end
 
-  defp focus_update(state) do
+  defp focus_update(state, dir \\ :next) do
     %{
       visible: visible,
       enabled: enabled,
@@ -204,13 +209,13 @@ defmodule Terminal.Panel do
                   {state, nil}
 
                 {false, true} ->
-                  mote = mote_focused(mote, false)
+                  mote = mote_focused(mote, false, dir)
                   state = put_child(state, focus, mote)
                   state = Map.put(state, :focus, nil)
                   {state, nil}
 
                 {true, false} ->
-                  mote = mote_focused(mote, true)
+                  mote = mote_focused(mote, true, dir)
                   state = put_child(state, focus, mote)
                   {state, focus}
 
@@ -222,13 +227,13 @@ defmodule Terminal.Panel do
 
     case {expected, focus} do
       {true, nil} ->
-        case focus_list(state) do
+        case focus_list(state, dir) do
           [] ->
             state
 
           [focus | _] ->
             mote = get_child(state, focus)
-            mote = mote_focused(mote, true)
+            mote = mote_focused(mote, true, dir)
             state = put_child(state, focus, mote)
             Map.put(state, :focus, focus)
         end
@@ -242,12 +247,17 @@ defmodule Terminal.Panel do
   defp put_child(state, id, child), do: put_in(state, [:children, id], child)
   defp child_focusable(state, id), do: mote_focusable(get_child(state, id))
   defp child_findex(state, id), do: mote_findex(get_child(state, id))
+  defp mote_render({module, state}, canvas), do: module.render(state, canvas)
   defp mote_bounds({module, state}), do: module.bounds(state)
   defp mote_findex({module, state}), do: module.findex(state)
   defp mote_focusable({module, state}), do: module.focusable(state)
   defp mote_focused({module, state}), do: module.focused(state)
-  defp mote_focused({module, state}, focused), do: {module, module.focused(state, focused)}
-  defp mote_render({module, state}, canvas), do: module.render(state, canvas)
+
+  defp mote_focused({module, state}, focused, dir) do
+    state = module.focused(state, focused)
+    state = module.refocus(state, dir)
+    {module, state}
+  end
 
   defp mote_handle({module, state}, event) do
     {state, event} = module.handle(state, event)

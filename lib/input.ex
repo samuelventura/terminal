@@ -42,10 +42,11 @@ defmodule Terminal.Input do
   def focusable(%{visible: false}), do: false
   def focusable(%{on_change: nil}), do: false
   def focusable(%{findex: findex}), do: findex >= 0
+  def refocus(state, _), do: state
   def focused(%{focused: focused}), do: focused
   def focused(state, focused), do: %{state | focused: focused}
   def findex(%{findex: findex}), do: findex
-  def children(_state), do: []
+  def children(_), do: []
   def children(state, _), do: state
 
   def update(%{text: text} = state, props) do
@@ -71,6 +72,8 @@ defmodule Terminal.Input do
   end
 
   def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, :arrow_down}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, :arrow_up}), do: {state, {:focus, :prev}}
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
 
   def handle(%{cursor: cursor} = state, {:key, _, :arrow_left}) do

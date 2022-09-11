@@ -29,6 +29,10 @@ defmodule Terminal.State do
     Agent.get(agent, fn map -> map.pid end)
   end
 
+  def get(agent) do
+    Agent.get(agent, fn map -> map end)
+  end
+
   def push(agent, key) do
     Agent.get_and_update(agent, fn map ->
       keys = [key | map.keys]
