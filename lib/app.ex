@@ -36,9 +36,9 @@ defmodule Terminal.App do
           mote
       end
 
-    current = mote_to_map(mote, [key], %{})
     State.reset_state(react)
-    exec_realize(react, func, opts, current)
+    map = mote_to_map(mote, [key], %{})
+    exec_realize(react, func, opts, map)
   end
 
   def render(%{mote: {module, state}}, canvas), do: module.render(state, canvas)
@@ -52,8 +52,9 @@ defmodule Terminal.App do
   end
 
   defp exec_effects(%{react: react} = state) do
-    effects = State.get_effects(react)
+    {effects, cleanups} = State.reset_effects(react)
     State.reset_changes(react)
+    exec_cleanups(cleanups)
     exec_effects(effects)
 
     case State.count_changes(react) do
@@ -71,6 +72,14 @@ defmodule Terminal.App do
     {_key, {function, _deps}} = effect
     function.()
     exec_effects(tail)
+  end
+
+  defp exec_cleanups([]), do: nil
+
+  defp exec_cleanups([cleanup | tail]) do
+    {_key, cleanup} = cleanup
+    cleanup.()
+    exec_cleanups(tail)
   end
 
   defp mote_to_map({module, state}, keys, map) do

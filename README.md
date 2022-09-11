@@ -35,6 +35,8 @@ Process.exit pid, :kill
 - Function components external children must be ignored
 - No mixing on logic and markup allowed. State and logic to the top, markup to the bottom.
 - Null effects may be executed multiple times in a single user event because of state changes propagation.
+- The reason for use_effect (instead of direct execution from event handlers) is its cleanup mechanism.
+- Effects and cleanups are executed post render in same render process.
 
 ## Future
 

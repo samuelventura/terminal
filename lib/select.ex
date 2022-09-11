@@ -138,7 +138,7 @@ defmodule Terminal.Select do
         canvas = Canvas.clear(canvas, :colors)
 
         canvas =
-          case {enabled, focused, i == selected} do
+          case {enabled, focused, i == selected - offset} do
             {false, _, _} ->
               canvas = Canvas.color(canvas, :fgcolor, theme.fore_disabled)
               Canvas.color(canvas, :bgcolor, theme.back_disabled)

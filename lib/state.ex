@@ -10,10 +10,13 @@ defmodule Terminal.State do
           state: %{},
           prestate: %{},
           callbacks: %{},
+          precallbacks: %{},
           changes: %{},
           effects: %{},
           ieffects: [],
           preffects: %{},
+          preieffects: [],
+          ceffects: %{},
           timers: %{},
           timerc: 0
         }
@@ -89,10 +92,13 @@ defmodule Terminal.State do
           state: %{},
           prestate: map.state,
           callbacks: %{},
+          precallbacks: map.callbacks,
           changes: map.changes,
           effects: %{},
           ieffects: [],
           preffects: map.effects,
+          preieffects: map.ieffects,
+          ceffects: map.ceffects,
           timers: map.timers,
           timerc: map.timerc
         }
@@ -111,7 +117,11 @@ defmodule Terminal.State do
   end
 
   def get_callback(agent, key) do
-    Agent.get(agent, fn map -> map.callbacks[key] end)
+    Agent.get(agent, fn map ->
+      # precallbacks required to pass callbacks as effect cleanups
+      callback = Map.get(map.precallbacks, key, fn -> nil end)
+      Map.get(map.callbacks, key, callback)
+    end)
   end
 
   @spec use_effect(atom | pid | {atom, any} | {:via, atom, any}, any, any, any) :: :ok
@@ -127,25 +137,64 @@ defmodule Terminal.State do
       end)
   end
 
-  def get_effects(agent) do
-    Agent.get(agent, fn map ->
+  def reset_effects(agent) do
+    Agent.get_and_update(agent, fn map ->
       changes = Map.fetch!(map, :changes)
       effects = Map.fetch!(map, :effects)
       ieffects = Map.fetch!(map, :ieffects)
       preffects = Map.fetch!(map, :preffects)
+      preieffects = Map.fetch!(map, :preieffects)
+      ceffects = Map.fetch!(map, :ceffects)
 
-      effects = for key <- Enum.reverse(ieffects), do: {key, effects[key]}
-
-      Enum.filter(effects, fn {key, {_function, deps}} ->
-        [_ | parent] = key
-
-        case deps do
-          nil -> true
-          [] -> !Map.has_key?(preffects, key)
-          _ -> Enum.all?(deps, fn dep -> Map.get(changes, [dep | parent], 0) > 0 end)
+      removed =
+        for key <- Enum.reverse(preieffects), reduce: [] do
+          list ->
+            case Map.has_key?(effects, key) do
+              false -> [key | list]
+              true -> list
+            end
         end
-      end)
+
+      triggered = for key <- Enum.reverse(ieffects), do: {key, effects[key]}
+
+      triggered =
+        Enum.filter(triggered, fn {key, {_function, deps}} ->
+          [_ | parent] = key
+
+          case deps do
+            nil -> true
+            [] -> !Map.has_key?(preffects, key)
+            _ -> Enum.all?(deps, fn dep -> Map.get(changes, [dep | parent], 0) > 0 end)
+          end
+        end)
+
+      cleanups =
+        for {key, {_function, _deps}} <- triggered, reduce: removed do
+          list -> [key | list]
+        end
+
+      {cleanups, ceffects} =
+        for key <- cleanups, reduce: {[], ceffects} do
+          {list, map} ->
+            case Map.get(map, key) do
+              nil -> {list, map}
+              cleanup -> {[{key, cleanup} | list], Map.delete(map, key)}
+            end
+        end
+
+      map = Map.put(map, :ceffects, ceffects)
+      {{triggered, cleanups}, map}
     end)
+  end
+
+  def set_cleanup(agent, key, function) do
+    :ok =
+      Agent.update(agent, fn map ->
+        Map.update!(map, :ceffects, fn ceffects ->
+          if Map.has_key?(ceffects, key), do: raise("Duplicated cleanup key: #{inspect(key)}")
+          Map.put(ceffects, key, function)
+        end)
+      end)
   end
 
   def reset_changes(agent) do

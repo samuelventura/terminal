@@ -40,8 +40,21 @@ defmodule Terminal.React do
     fn -> State.get_callback(react, keys).() end
   end
 
-  def use_effect(react, key, deps, function) do
+  def use_effect(react, key, function) do
+    use_effect(react, key, nil, function)
+  end
+
+  def use_effect(react, key, deps, callback) do
     keys = State.key(react, key)
+
+    function = fn ->
+      cleanup = callback.()
+
+      if is_function(cleanup) do
+        State.set_cleanup(react, keys, cleanup)
+      end
+    end
+
     State.use_effect(react, keys, function, deps)
   end
 

@@ -39,7 +39,7 @@ defmodule Terminal.Demo do
         size: {10, 4},
         selected: index,
         on_change: on_change,
-        items: ["Timer", "Counter", "Network", "Password"]
+        items: ["Timer", "Effects", "Counter", "Network", "Password"]
       )
 
       markup(:tab_frame, Frame,
@@ -48,14 +48,21 @@ defmodule Terminal.Demo do
         text: name
       )
 
-      markup(:timer, &timer/2, visible: index == 0, origin: tab_origin, size: tab_size)
-      markup(:counter, &counter/2, visible: index == 1, origin: tab_origin, size: tab_size)
-      markup(:network, &network/2, visible: index == 2, origin: tab_origin, size: tab_size)
-      markup(:login, &password/2, visible: index == 3, origin: tab_origin, size: tab_size)
+      markup(index, &tabs/2, tab: index, origin: tab_origin, size: tab_size)
     end
   end
 
-  def timer(react, %{visible: visible, origin: origin, size: size}) do
+  def tabs(_react, %{tab: tab, origin: origin, size: size}) do
+    case tab do
+      0 -> markup(:timer, &timer/2, origin: origin, size: size)
+      1 -> markup(:effects, &effects/2, origin: origin, size: size)
+      2 -> markup(:counter, &counter/2, origin: origin, size: size)
+      3 -> markup(:network, &network/2, origin: origin, size: size)
+      4 -> markup(:password, &password/2, origin: origin, size: size)
+    end
+  end
+
+  def timer(react, %{origin: origin, size: size}) do
     {count, set_count} = use_state(react, :count, 0)
     {timer, set_timer} = use_state(react, :timer, nil)
 
@@ -65,10 +72,33 @@ defmodule Terminal.Demo do
         set_count.(count + 1)
       end)
 
+    cleanup =
+      use_callback(react, :cleanup, fn ->
+        if timer != nil do
+          log("Cleanup timer...")
+          clear_interval(timer)
+          # as expected this excepts when called from a cleanup
+          # because the timer state key is gone at that point
+          # set_timer.(nil)
+        end
+      end)
+
+    use_effect(react, :once, [], fn ->
+      log("Timer effect")
+
+      # callback required as cleanup
+      # to access latest timer value
+      # otherwise nil will be captured
+      fn ->
+        log("Timer cleanup")
+        cleanup.()
+      end
+    end)
+
     on_start = fn ->
       if timer == nil do
         log("Starting timer...")
-        timer = set_interval(react, 500, callback)
+        timer = set_interval(react, 1000, callback)
         set_timer.(timer)
       end
     end
@@ -83,7 +113,7 @@ defmodule Terminal.Demo do
 
     on_reset = fn -> set_count.(0) end
 
-    markup :main, Panel, visible: visible, origin: origin, size: size do
+    markup :main, Panel, origin: origin, size: size do
       markup(:label, Label, origin: {0, 0}, size: {12, 1}, text: "#{count}")
 
       markup(:start, Button,
@@ -109,13 +139,28 @@ defmodule Terminal.Demo do
     end
   end
 
-  def counter(react, %{visible: visible, origin: origin, size: size}) do
+  def effects(react, %{origin: origin, size: size}) do
     {count, set_count} = use_state(react, :count, 0)
 
     on_increment = fn -> set_count.(count + 1) end
     on_decrement = fn -> set_count.(count - 1) end
 
-    markup :main, Panel, visible: visible, origin: origin, size: size do
+    use_effect(react, :always, fn ->
+      log("Always effect")
+      fn -> log("Always cleanup") end
+    end)
+
+    use_effect(react, :once, [], fn ->
+      log("Once effect")
+      fn -> log("Once cleanup") end
+    end)
+
+    use_effect(react, :count, [:count], fn ->
+      log("Count effect")
+      fn -> log("Count cleanup") end
+    end)
+
+    markup :main, Panel, origin: origin, size: size do
       markup(:label, Label, origin: {0, 0}, size: {12, 1}, text: "#{count}")
 
       markup(:increment, Button,
@@ -136,7 +181,34 @@ defmodule Terminal.Demo do
     end
   end
 
-  def network(react, %{visible: visible, origin: origin, size: {w, _h} = size}) do
+  def counter(react, %{origin: origin, size: size}) do
+    {count, set_count} = use_state(react, :count, 0)
+
+    on_increment = fn -> set_count.(count + 1) end
+    on_decrement = fn -> set_count.(count - 1) end
+
+    markup :main, Panel, origin: origin, size: size do
+      markup(:label, Label, origin: {0, 0}, size: {12, 1}, text: "#{count}")
+
+      markup(:increment, Button,
+        origin: {0, 1},
+        size: {12, 1},
+        enabled: rem(count, 3) != 2,
+        text: "Increment",
+        on_click: on_increment
+      )
+
+      markup(:decrement, Button,
+        origin: {0, 2},
+        size: {12, 1},
+        text: "Decrement",
+        enabled: rem(count, 3) != 0,
+        on_click: on_decrement
+      )
+    end
+  end
+
+  def network(react, %{origin: origin, size: {w, _h} = size}) do
     {busy, set_busy} = use_state(react, :busy, false)
     {type, set_type} = use_state(react, :type, "DHCP")
     {address, set_address} = use_state(react, :address, "10.77.0.10")
@@ -170,7 +242,7 @@ defmodule Terminal.Demo do
       end)
     end
 
-    markup :main, Panel, visible: visible, origin: origin, size: size do
+    markup :main, Panel, origin: origin, size: size do
       markup(:title, Label, origin: {0, 0}, size: {w, 1}, text: "Interface eth0")
       markup(:result, Label, origin: {0, 5}, size: {w, 1}, text: msg, bgcolor: bgc, fgcolor: fgc)
 
@@ -210,14 +282,14 @@ defmodule Terminal.Demo do
     end
   end
 
-  def password(react, %{visible: visible, origin: origin, size: size}) do
+  def password(react, %{origin: origin, size: size}) do
     {user, set_user} = use_state(react, :user, "samuel")
     {password, set_password} = use_state(react, :password, "abc123")
 
     on_user = fn text -> set_user.(text) end
     on_password = fn text -> set_password.(text) end
 
-    markup :main, Panel, visible: visible, origin: origin, size: size do
+    markup :main, Panel, origin: origin, size: size do
       markup(:label, Label, origin: {0, 0}, size: {22, 1}, text: "Welcome #{user}!")
 
       markup(:input_label, Label, origin: {0, 1}, text: "Username:")
