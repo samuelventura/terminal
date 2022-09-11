@@ -29,4 +29,10 @@ defmodule Terminal.Parser do
   def parse({:markup, _, _} = single) do
     parse([single])
   end
+
+  def parse(other) do
+    quote do
+      unquote(other)
+    end
+  end
 end

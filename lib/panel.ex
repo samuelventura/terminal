@@ -37,6 +37,7 @@ defmodule Terminal.Panel do
     {index, children} =
       for {id, child} <- children, reduce: {[], %{}} do
         {index, map} ->
+          if Map.has_key?(map, id), do: raise("Duplicated child id: #{id}")
           {[id | index], Map.put(map, id, child)}
       end
 

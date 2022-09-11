@@ -111,8 +111,8 @@ defmodule Terminal.Frame do
     Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:bracket, state.bracket)
-    Check.assert_in_range(:fore, state.back, 0..15)
-    Check.assert_in_range(:back, state.fore, 0..8)
+    Check.assert_in_range(:fore, state.fore, 0..15)
+    Check.assert_in_range(:back, state.back, 0..7)
     Check.assert_in_list(:style, state.style, [:single, :double])
     state
   end

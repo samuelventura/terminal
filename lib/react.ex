@@ -9,10 +9,14 @@ defmodule Terminal.React do
   end
 
   defmacro markup(key, module, props, do: inner) do
+    # standard unquoting of a block returns last value
+    # parse to capture each markup instance
     inner = Parser.parse(inner)
 
+    # flatten allows for nested children generators
     quote do
-      {unquote(key), unquote(module), unquote(props), unquote(inner)}
+      children = unquote(inner) |> List.flatten()
+      {unquote(key), unquote(module), unquote(props), children}
     end
   end
 

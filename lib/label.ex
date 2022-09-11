@@ -65,8 +65,8 @@ defmodule Terminal.Label do
     Check.assert_point_2d(:origin, state.origin)
     Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
-    Check.assert_in_range(:fore, state.back, 0..15)
-    Check.assert_in_range(:back, state.fore, 0..8)
+    Check.assert_in_range(:fore, state.fore, 0..15)
+    Check.assert_in_range(:back, state.back, 0..7)
     state
   end
 end

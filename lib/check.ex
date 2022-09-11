@@ -37,7 +37,7 @@ defmodule Terminal.Check do
   end
 
   def assert_in_range(name, value, range) do
-    if !(value in range), do: raise("#{name} not range #{inspect(range)}: #{inspect(value)}")
+    if !(value in range), do: raise("#{name} not in #{inspect(range)}: #{inspect(value)}")
   end
 
   def assert_point_2d(name, value) do

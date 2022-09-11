@@ -9,7 +9,7 @@ defmodule Terminal.Demo do
 
   def main(react, %{size: size}) do
     {index, set_index} = use_state(react, :index, 0)
-    {name, set_name} = use_state(react, :name, "Timer")
+    {name, set_name} = use_state(react, :name, "Color")
 
     on_change = fn index, name ->
       set_index.(index)
@@ -17,7 +17,7 @@ defmodule Terminal.Demo do
     end
 
     tab_origin = {13, 2}
-    tab_size = {40, 6}
+    tab_size = {40, 8}
 
     markup :main, Panel, size: size do
       markup(:label, Label, text: "Terminal UIs with Reactish API - Demo")
@@ -33,12 +33,12 @@ defmodule Terminal.Demo do
         size: {10, 4},
         selected: index,
         on_change: on_change,
-        items: ["Timer", "Effects", "Counter", "Network", "Password"]
+        items: ["Color", "Timer", "Effects", "Counter", "Network", "Password"]
       )
 
       markup(:tab_frame, Frame,
         origin: {12, 1},
-        size: {42, 8},
+        size: {42, 10},
         text: name
       )
 
@@ -48,11 +48,27 @@ defmodule Terminal.Demo do
 
   def tabs(_react, %{tab: tab, origin: origin, size: size}) do
     case tab do
-      0 -> markup(:timer, &timer/2, origin: origin, size: size)
-      1 -> markup(:effects, &effects/2, origin: origin, size: size)
-      2 -> markup(:counter, &counter/2, origin: origin, size: size)
-      3 -> markup(:network, &network/2, origin: origin, size: size)
-      4 -> markup(:password, &password/2, origin: origin, size: size)
+      0 -> markup(:color, &color/2, origin: origin, size: size)
+      1 -> markup(:timer, &timer/2, origin: origin, size: size)
+      2 -> markup(:effects, &effects/2, origin: origin, size: size)
+      3 -> markup(:counter, &counter/2, origin: origin, size: size)
+      4 -> markup(:network, &network/2, origin: origin, size: size)
+      5 -> markup(:password, &password/2, origin: origin, size: size)
+    end
+  end
+
+  def color(_react, %{origin: origin, size: size}) do
+    markup :main, Panel, origin: origin, size: size do
+      for b <- 0..7 do
+        for f <- 0..15 do
+          markup(16 * b + f, Label,
+            origin: {2 * f, b},
+            text: "H ",
+            back: b,
+            fore: f
+          )
+        end
+      end
     end
   end
 
@@ -221,7 +237,7 @@ defmodule Terminal.Demo do
         :timer.sleep(1000)
 
         case type do
-          "Manual" ->
+          "Static" ->
             case {valid_ip?(address), valid_ip?(netmask)} do
               {false, _} -> set_result.({@red, @black, "Invalid address: #{address}"})
               {_, false} -> set_result.({@red, @black, "Invalid netmask: #{netmask}"})
@@ -243,11 +259,11 @@ defmodule Terminal.Demo do
       markup(:type, Radio,
         origin: {0, 1},
         size: {w, 1},
-        items: ["DHCP", "Manual"],
+        items: ["DHCP", "Static"],
         on_change: on_type
       )
 
-      markup :manual, Panel, visible: type == "Manual", origin: {0, 2}, size: {w, 2} do
+      markup :manual, Panel, origin: {0, 2}, size: {w, 2} do
         markup(:address_label, Label, origin: {0, 0}, text: "Address:")
         markup(:netmask_label, Label, origin: {0, 1}, text: "Netmask:")
 
@@ -255,6 +271,7 @@ defmodule Terminal.Demo do
           origin: {9, 0},
           size: {15, 1},
           text: address,
+          enabled: type == "Static",
           on_change: set_address
         )
 
@@ -262,6 +279,7 @@ defmodule Terminal.Demo do
           origin: {9, 1},
           size: {15, 1},
           text: netmask,
+          enabled: type == "Static",
           on_change: set_netmask
         )
       end
