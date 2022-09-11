@@ -49,7 +49,7 @@ defmodule InputTest do
     # reset of calculated props
     assert Input.update(initial, text: "text") == %{initial | text: "text", cursor: 4}
 
-    assert Input.handle(%{}, {:key, nil, "\t"}) == {%{}, {:focus, :next}}
+    assert Input.handle(%{}, {:key, 0, "\t"}) == {%{}, {:focus, :next}}
     assert Input.handle(%{}, {:key, nil, "\r"}) == {%{}, {:focus, :next}}
 
     # ignore keyboard events

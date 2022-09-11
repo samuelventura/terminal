@@ -43,7 +43,7 @@ defmodule ButtonTest do
     assert Button.update(initial, text: "text") == %{initial | text: "text"}
     assert Button.update(initial, on_click: on_click) == %{initial | on_click: on_click}
 
-    assert Button.handle(%{}, {:key, nil, "\t"}) == {%{}, {:focus, :next}}
+    assert Button.handle(%{}, {:key, 0, "\t"}) == {%{}, {:focus, :next}}
 
     assert Button.handle(%{on_click: on_click}, {:key, nil, "\r"}) ==
              {%{on_click: on_click}, :click}

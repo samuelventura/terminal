@@ -114,7 +114,8 @@ defmodule Terminal.Select do
     end
   end
 
-  def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
+  def handle(state, {:key, 0, "\t"}), do: {state, {:focus, :next}}
+  def handle(state, {:key, 2, "\t"}), do: {state, {:focus, :prev}}
   def handle(state, {:key, _, :arrow_right}), do: {state, {:focus, :next}}
   def handle(state, {:key, _, :arrow_left}), do: {state, {:focus, :prev}}
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}

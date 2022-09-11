@@ -62,4 +62,5 @@ Process.exit pid, :kill
 - Use effect execution order
 - Use effect cleanups
 - Timer API
-
+- Test refocus
+- Test reverse nav

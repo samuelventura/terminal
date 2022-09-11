@@ -60,7 +60,7 @@ defmodule SelectTest do
                offset: 0
            }
 
-    assert Select.handle(%{}, {:key, nil, "\t"}) == {%{}, {:focus, :next}}
+    assert Select.handle(%{}, {:key, 0, "\t"}) == {%{}, {:focus, :next}}
     assert Select.handle(%{}, {:key, nil, "\r"}) == {%{}, {:focus, :next}}
 
     assert Select.handle(initial, {:key, nil, :arrow_up}) == {initial, nil}

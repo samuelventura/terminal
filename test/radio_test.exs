@@ -57,7 +57,7 @@ defmodule RadioTest do
                selected: 0
            }
 
-    assert Radio.handle(%{}, {:key, nil, "\t"}) == {%{}, {:focus, :next}}
+    assert Radio.handle(%{}, {:key, 0, "\t"}) == {%{}, {:focus, :next}}
     assert Radio.handle(%{}, {:key, nil, "\r"}) == {%{}, {:focus, :next}}
 
     assert Radio.handle(initial, {:key, nil, :arrow_left}) == {initial, nil}
