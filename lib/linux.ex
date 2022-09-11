@@ -37,7 +37,7 @@ defmodule Terminal.Linux do
   defp mouse(:extended), do: "\e[?1006h"
   defp set(:cursor, :blinking_underline), do: ""
 
-  @resize ~r/^\e\[(\d+);(\d+)R/
+  @size_re ~r/^\e\[(\d+);(\d+)R/
 
   # thinkpad/corsair usb us keyboard
   @escapes [
@@ -173,7 +173,7 @@ defmodule Terminal.Linux do
   end
 
   defp resize(nil, buffer) do
-    case Regex.run(@resize, buffer) do
+    case Regex.run(@size_re, buffer) do
       [prefix, h, w] ->
         w = String.to_integer(w)
         h = String.to_integer(h)

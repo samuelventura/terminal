@@ -4,7 +4,7 @@ defmodule Terminal.Demo do
 
   def init(opts) do
     size = Keyword.fetch!(opts, :size)
-    app_init(&main/2, size: size)
+    app_init(&main/2, size: size, on_event: fn e -> log("Event #{inspect(e)}") end)
   end
 
   def main(react, %{size: size}) do

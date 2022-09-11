@@ -59,6 +59,10 @@ defmodule Terminal.Const do
       @arrow_down @arrow + @down
       @arrow_right @arrow + @right
       @arrow_left @arrow + @left
+
+      @mouse 500
+      @mouse_up @mouse + @up
+      @mouse_down @mouse + @down
     end
   end
 end

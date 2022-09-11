@@ -58,10 +58,10 @@ defmodule Terminal.Code do
   # defp reset(:crossed), do: "\e[29m"
   # defp reset(_), do: ""
 
-  @resize ~r/^\e\[(\d+);(\d+)R/
-  @mouse ~r/^\e\[M(.)(.)(.)/
-  @mouse_down ~r/^\e\[<(\d+);(\d+);(\d+)M/
-  @mouse_up ~r/^\e\[<(\d+);(\d+);(\d+)m/
+  @size_re ~r/^\e\[(\d+);(\d+)R/
+  @mouse_re ~r/^\e\[M(.)(.)(.)/
+  @mouse_down_re ~r/^\e\[<(\d+);(\d+);(\d+)M/
+  @mouse_up_re ~r/^\e\[<(\d+);(\d+);(\d+)m/
 
   # thinkpad/corsair usb us keyboard
   @escapes [
@@ -159,9 +159,9 @@ defmodule Terminal.Code do
 
   defp scan("\e" <> _ = buffer) do
     nil
-    |> mouse(buffer, @mouse)
-    |> mouse_ex(buffer, @mouse_up, @mouse_up)
-    |> mouse_ex(buffer, @mouse_down, @mouse_down)
+    |> mouse(buffer, @mouse_re)
+    |> mouse_ex(buffer, @mouse_up_re, @mouse_up)
+    |> mouse_ex(buffer, @mouse_down_re, @mouse_down)
     |> escapes(buffer)
     |> resize(buffer)
     |> altkey(buffer)
@@ -196,13 +196,13 @@ defmodule Terminal.Code do
     end
   end
 
-  defp mouse_ex(nil, buffer, regex, name) do
+  defp mouse_ex(nil, buffer, regex, code) do
     case Regex.run(regex, buffer) do
       [prefix, s, x, y] ->
         s = String.to_integer(s)
         x = String.to_integer(x)
         y = String.to_integer(y)
-        {prefix, {name, s, x, y}}
+        {prefix, {:mouse, s, x, y, code}}
 
       nil ->
         nil
@@ -226,7 +226,7 @@ defmodule Terminal.Code do
   defp escapes(prev, _), do: prev
 
   defp resize(nil, buffer) do
-    case Regex.run(@resize, buffer) do
+    case Regex.run(@size_re, buffer) do
       [prefix, h, w] ->
         w = String.to_integer(w)
         h = String.to_integer(h)

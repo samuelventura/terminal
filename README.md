@@ -65,3 +65,4 @@ Process.exit pid, :kill
 - Timer API
 - Test refocus
 - Test reverse nav
+- Test canvas && diffing
