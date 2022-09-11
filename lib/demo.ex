@@ -1,12 +1,5 @@
 defmodule Terminal.Demo do
   use Terminal.App
-  alias Terminal.Panel
-  alias Terminal.Label
-  alias Terminal.Button
-  alias Terminal.Input
-  alias Terminal.Frame
-  alias Terminal.Select
-  alias Terminal.Radio
 
   def init(opts) do
     size = Keyword.fetch!(opts, :size)

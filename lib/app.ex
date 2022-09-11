@@ -7,6 +7,13 @@ defmodule Terminal.App do
       @behaviour Terminal.Runnable
       import Terminal.React
       import Terminal.App, only: [app_init: 2]
+      alias Terminal.Panel
+      alias Terminal.Label
+      alias Terminal.Button
+      alias Terminal.Input
+      alias Terminal.Frame
+      alias Terminal.Select
+      alias Terminal.Radio
       defdelegate handle(state, event), to: App
       defdelegate render(state, canvas), to: App
       defdelegate execute(cmd), to: App
