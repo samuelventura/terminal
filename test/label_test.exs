@@ -1,5 +1,6 @@
 defmodule LabelTest do
   use ExUnit.Case
+  use Terminal.Const
   alias Terminal.Label
   alias Terminal.Theme
 
@@ -14,8 +15,8 @@ defmodule LabelTest do
              origin: {0, 0},
              size: {0, 1},
              visible: true,
-             bgcolor: theme.back_readonly,
-             fgcolor: theme.fore_readonly
+             back: theme.back_readonly,
+             fore: theme.fore_readonly
            }
 
     # panel getter/setters
@@ -27,14 +28,15 @@ defmodule LabelTest do
     assert Label.findex(%{findex: 0}) === -1
     assert Label.children(:state) == []
     assert Label.children(:state, []) == :state
+    assert Label.refocus(:state, :dir) == :state
 
     # react update
     assert Label.update(initial, text: "text") == %{initial | text: "text"}
     assert Label.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Label.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
     assert Label.update(initial, visible: false) == %{initial | visible: false}
-    assert Label.update(initial, bgcolor: :red) == %{initial | bgcolor: :red}
-    assert Label.update(initial, fgcolor: :blue) == %{initial | fgcolor: :blue}
+    assert Label.update(initial, back: @red) == %{initial | back: @red}
+    assert Label.update(initial, fore: @red) == %{initial | fore: @red}
 
     # nops
     assert Label.handle(%{}, nil) === {%{}, nil}

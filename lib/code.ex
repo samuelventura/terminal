@@ -1,53 +1,62 @@
 defmodule Terminal.Code do
+  @behaviour Terminal.Term
   use Terminal.Const
 
-  # https://xtermjs.org/docs/api/vtfeatures/
-  # xtermjs wont suppot blink #944
-  def clear(:all), do: "\ec"
-  def clear(:screen), do: "\e[2J"
-  def clear(:styles), do: "\e[0m"
+  def init(),
+    do:
+      [
+        clear(:all),
+        hide(:cursor),
+        mouse(:standard),
+        mouse(:extended),
+        set(:cursor, :blinking_underline)
+      ]
+      |> IO.iodata_to_binary()
 
   def query(:size), do: "\e[s\e[999;999H\e[6n\e[u"
-
-  # standard required to enable extended
-  def mouse(:standard), do: "\e[?1000h"
-  def mouse(:extended), do: "\e[?1006h"
-
-  def cursor(:style, :blinking_block), do: "\e[1 q"
-  def cursor(:style, :steady_block), do: "\e[2 q"
-  def cursor(:style, :blinking_underline), do: "\e[3 q"
-  def cursor(:style, :steady_underline), do: "\e[4 q"
-  def cursor(:style, :blinking_bar), do: "\e[5 q"
-  def cursor(:style, :steady_bar), do: "\e[6 q"
-  def cursor(column, line), do: "\e[#{line + 1};#{column + 1}H"
-
-  def show(:cursor), do: "\e[?25h"
   def hide(:cursor), do: "\e[?25l"
-
+  def show(:cursor), do: "\e[?25h"
+  def cursor(column, line), do: "\e[#{line + 1};#{column + 1}H"
   # bright colors are shifted by 8 but frame chars wont show in bblack
-  def color(:fgcolor, name), do: "\e[38;5;#{rem(color_id(name), 16)}m"
-  def color(:bgcolor, name), do: "\e[48;5;#{rem(color_id(name), 8)}m"
-
-  def set(:bold), do: "\e[1m"
-  def set(:dimmed), do: "\e[2m"
-  def set(:italic), do: "\e[3m"
-  def set(:underline), do: "\e[4m"
-  def set(:inverse), do: "\e[7m"
-  def set(:crossed), do: "\e[9m"
-  def set(_), do: ""
-
-  # normal reset both bold and dimmed
-  def reset(:normal), do: "\e[22m"
-  def reset(:italic), do: "\e[23m"
-  def reset(:underline), do: "\e[24m"
-  def reset(:inverse), do: "\e[27m"
-  def reset(:crossed), do: "\e[29m"
-  def reset(_), do: ""
+  def color(:fore, color), do: "\e[38;5;#{rem(color, 16)}m"
+  def color(:back, color), do: "\e[48;5;#{rem(color, 8)}m"
 
   def append(buffer, data) do
     buffer = buffer <> data
     scan(buffer, [])
   end
+
+  # https://xtermjs.org/docs/api/vtfeatures/
+  # xtermjs wont suppot blink #944
+  defp clear(:all), do: "\ec"
+  # defp clear(:screen), do: "\e[2J"
+  # defp clear(:styles), do: "\e[0m"
+
+  # standard required to enable extended
+  defp mouse(:standard), do: "\e[?1000h"
+  defp mouse(:extended), do: "\e[?1006h"
+
+  # defp set(:cursor, @blinking_block), do: "\e[1 q"
+  # defp set(:cursor, @steady_block), do: "\e[2 q"
+  defp set(:cursor, :blinking_underline), do: "\e[3 q"
+  # # defp set(:cursor, @steady_underline), do: "\e[4 q"
+  # # defp set(:cursor, @blinking_bar), do: "\e[5 q"
+  # # defp set(:cursor, @steady_bar), do: "\e[6 q"
+  # # defp set(:bold), do: "\e[1m"
+  # defp set(:dimmed), do: "\e[2m"
+  # defp set(:italic), do: "\e[3m"
+  # defp set(:underline), do: "\e[4m"
+  # defp set(:inverse), do: "\e[7m"
+  # defp set(:crossed), do: "\e[9m"
+  # defp set(_), do: ""
+
+  # normal reset both bold and dimmed
+  # defp reset(:normal), do: "\e[22m"
+  # defp reset(:italic), do: "\e[23m"
+  # defp reset(:underline), do: "\e[24m"
+  # defp reset(:inverse), do: "\e[27m"
+  # defp reset(:crossed), do: "\e[29m"
+  # defp reset(_), do: ""
 
   @resize ~r/^\e\[(\d+);(\d+)R/
   @mouse ~r/^\e\[M(.)(.)(.)/
@@ -56,32 +65,32 @@ defmodule Terminal.Code do
 
   # thinkpad/corsair usb us keyboard
   @escapes [
-    {"\e[[A", :f1},
-    {"\e[[B", :f2},
-    {"\e[[C", :f3},
-    {"\e[[D", :f4},
-    {"\e[[E", :f5},
-    {"\e[17~", :f6},
-    {"\e[18~", :f7},
-    {"\e[19~", :f8},
-    {"\e[20~", :f9},
-    {"\e[21~", :f10},
-    {"\e[23~", :f11},
-    {"\e[24~", :f12},
-    {"\e[H", :home},
-    {"\e[2~", :insert},
-    {"\e[3~", :delete},
-    {"\e[F", :end},
-    {"\e[5~", :page_up},
-    {"\e[6~", :page_down},
-    {"\e[A", :arrow_up},
-    {"\e[B", :arrow_down},
-    {"\e[C", :arrow_right},
-    {"\e[D", :arrow_left}
+    {"\e[[A", @f1},
+    {"\e[[B", @f2},
+    {"\e[[C", @f3},
+    {"\e[[D", @f4},
+    {"\e[[E", @f5},
+    {"\e[17~", @f6},
+    {"\e[18~", @f7},
+    {"\e[19~", @f8},
+    {"\e[20~", @f9},
+    {"\e[21~", @f10},
+    {"\e[23~", @f11},
+    {"\e[24~", @f12},
+    {"\e[H", @home},
+    {"\e[2~", @insert},
+    {"\e[3~", @delete},
+    {"\e[F", @hend},
+    {"\e[5~", @page_up},
+    {"\e[6~", @page_down},
+    {"\e[A", @arrow_up},
+    {"\e[B", @arrow_down},
+    {"\e[C", @arrow_right},
+    {"\e[D", @arrow_left}
   ]
 
   @singles [
-    {"\d", {@fun, :backspace}},
+    {"\d", {@fun, @backspace}},
     {<<0>>, {@ctl, "2"}},
     {<<28>>, {@ctl, "4"}},
     {<<29>>, {@ctl, "5"}},
@@ -151,8 +160,8 @@ defmodule Terminal.Code do
   defp scan("\e" <> _ = buffer) do
     nil
     |> mouse(buffer, @mouse)
-    |> mouse_ex(buffer, @mouse_up, :mouse_up)
-    |> mouse_ex(buffer, @mouse_down, :mouse_down)
+    |> mouse_ex(buffer, @mouse_up, @mouse_up)
+    |> mouse_ex(buffer, @mouse_down, @mouse_down)
     |> escapes(buffer)
     |> resize(buffer)
     |> altkey(buffer)

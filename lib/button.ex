@@ -1,5 +1,6 @@
 defmodule Terminal.Button do
   @behaviour Terminal.Window
+  use Terminal.Const
   alias Terminal.Check
   alias Terminal.Button
   alias Terminal.Canvas
@@ -52,12 +53,12 @@ defmodule Terminal.Button do
     check(state)
   end
 
-  def handle(state, {:key, 0, "\t"}), do: {state, {:focus, :next}}
-  def handle(state, {:key, 2, "\t"}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, _, :arrow_down}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, :arrow_up}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, _, :arrow_right}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, :arrow_left}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, @arrow_down}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, _, @arrow_right}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, @arrow_left}), do: {state, {:focus, :prev}}
   def handle(%{on_click: on_click} = state, {:key, _, "\r"}), do: {state, on_click.()}
   def handle(state, _event), do: {state, nil}
 
@@ -77,16 +78,16 @@ defmodule Terminal.Button do
     canvas =
       case {enabled, focused} do
         {false, _} ->
-          canvas = Canvas.color(canvas, :fgcolor, theme.fore_disabled)
-          Canvas.color(canvas, :bgcolor, theme.back_disabled)
+          canvas = Canvas.color(canvas, :fore, theme.fore_disabled)
+          Canvas.color(canvas, :back, theme.back_disabled)
 
         {true, true} ->
-          canvas = Canvas.color(canvas, :fgcolor, theme.fore_focused)
-          Canvas.color(canvas, :bgcolor, theme.back_focused)
+          canvas = Canvas.color(canvas, :fore, theme.fore_focused)
+          Canvas.color(canvas, :back, theme.back_focused)
 
         _ ->
-          canvas = Canvas.color(canvas, :fgcolor, theme.fore_editable)
-          Canvas.color(canvas, :bgcolor, theme.back_editable)
+          canvas = Canvas.color(canvas, :fore, theme.fore_editable)
+          Canvas.color(canvas, :back, theme.back_editable)
       end
 
     canvas = Canvas.move(canvas, 0, 0)
@@ -100,8 +101,8 @@ defmodule Terminal.Button do
 
   defp check(state) do
     Check.assert_string(:text, state.text)
-    Check.assert_point2d(:origin, state.origin)
-    Check.assert_point2d(:size, state.size)
+    Check.assert_point_2d(:origin, state.origin)
+    Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:enabled, state.enabled)
     Check.assert_boolean(:focused, state.focused)

@@ -1,5 +1,6 @@
 defmodule FrameTest do
   use ExUnit.Case
+  use Terminal.Const
   alias Terminal.Frame
   alias Terminal.Theme
 
@@ -14,8 +15,8 @@ defmodule FrameTest do
              origin: {0, 0},
              size: {0, 0},
              visible: true,
-             bgcolor: theme.back_readonly,
-             fgcolor: theme.fore_readonly,
+             back: theme.back_readonly,
+             fore: theme.fore_readonly,
              bracket: false,
              style: :single
            }
@@ -29,14 +30,15 @@ defmodule FrameTest do
     assert Frame.findex(%{findex: 0}) === -1
     assert Frame.children(:state) == []
     assert Frame.children(:state, []) == :state
+    assert Frame.refocus(:state, :dir) == :state
 
     # react update
     assert Frame.update(initial, text: "text") == %{initial | text: "text"}
     assert Frame.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Frame.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
     assert Frame.update(initial, visible: false) == %{initial | visible: false}
-    assert Frame.update(initial, bgcolor: :bgcolor) == %{initial | bgcolor: :bgcolor}
-    assert Frame.update(initial, fgcolor: :fgcolor) == %{initial | fgcolor: :fgcolor}
+    assert Frame.update(initial, back: @red) == %{initial | back: @red}
+    assert Frame.update(initial, fore: @red) == %{initial | fore: @red}
 
     # nops
     assert Frame.handle(%{}, nil) === {%{}, nil}

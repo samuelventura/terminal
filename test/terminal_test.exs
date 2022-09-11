@@ -1,5 +1,6 @@
 defmodule TerminalTest do
   use ExUnit.Case
+  use Terminal.Const
   alias Terminal.Canvas
 
   test "canvas basic check" do

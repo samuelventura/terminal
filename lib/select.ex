@@ -1,5 +1,6 @@
 defmodule Terminal.Select do
   @behaviour Terminal.Window
+  use Terminal.Const
   alias Terminal.Check
   alias Terminal.Select
   alias Terminal.Canvas
@@ -78,7 +79,7 @@ defmodule Terminal.Select do
     check(state)
   end
 
-  def handle(state, {:key, _, :arrow_down}) do
+  def handle(state, {:key, _, @arrow_down}) do
     %{count: count, size: {_, height}, selected: selected, offset: offset} = state
     current = selected
     selected = if selected < count - 1, do: selected + 1, else: selected
@@ -86,17 +87,12 @@ defmodule Terminal.Select do
     state = %{state | selected: selected, offset: offset}
 
     case selected do
-      ^current ->
-        {state, nil}
-
-      _ ->
-        item = state.map[selected]
-        state.on_change.(selected, item)
-        {state, {:item, selected, item}}
+      ^current -> {state, nil}
+      _ -> {state, trigger(state)}
     end
   end
 
-  def handle(state, {:key, _, :arrow_up}) do
+  def handle(state, {:key, _, @arrow_up}) do
     %{selected: selected, offset: offset} = state
     current = selected
     selected = if selected > 0, do: selected - 1, else: selected
@@ -104,20 +100,16 @@ defmodule Terminal.Select do
     state = %{state | selected: selected, offset: offset}
 
     case selected do
-      ^current ->
-        {state, nil}
-
-      _ ->
-        item = state.map[selected]
-        state.on_change.(selected, item)
-        {state, {:item, selected, item}}
+      ^current -> {state, nil}
+      _ -> {state, trigger(state)}
     end
   end
 
-  def handle(state, {:key, 0, "\t"}), do: {state, {:focus, :next}}
-  def handle(state, {:key, 2, "\t"}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, _, :arrow_right}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, :arrow_left}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, @arrow_right}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, @arrow_left}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, @alt, "\r"}), do: {state, trigger(state)}
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
   def handle(state, _event), do: {state, nil}
 
@@ -144,20 +136,20 @@ defmodule Terminal.Select do
         canvas =
           case {enabled, focused, i == selected - offset} do
             {false, _, _} ->
-              canvas = Canvas.color(canvas, :fgcolor, theme.fore_disabled)
-              Canvas.color(canvas, :bgcolor, theme.back_disabled)
+              canvas = Canvas.color(canvas, :fore, theme.fore_disabled)
+              Canvas.color(canvas, :back, theme.back_disabled)
 
             {true, true, true} ->
-              canvas = Canvas.color(canvas, :fgcolor, theme.fore_focused)
-              Canvas.color(canvas, :bgcolor, theme.back_focused)
+              canvas = Canvas.color(canvas, :fore, theme.fore_focused)
+              Canvas.color(canvas, :back, theme.back_focused)
 
             {true, false, true} ->
-              canvas = Canvas.color(canvas, :fgcolor, theme.fore_selected)
-              Canvas.color(canvas, :bgcolor, theme.back_selected)
+              canvas = Canvas.color(canvas, :fore, theme.fore_selected)
+              Canvas.color(canvas, :back, theme.back_selected)
 
             _ ->
-              canvas = Canvas.color(canvas, :fgcolor, theme.fore_editable)
-              Canvas.color(canvas, :bgcolor, theme.back_editable)
+              canvas = Canvas.color(canvas, :fore, theme.fore_editable)
+              Canvas.color(canvas, :back, theme.back_editable)
           end
 
         item = Map.get(map, i + offset, "")
@@ -165,6 +157,12 @@ defmodule Terminal.Select do
         item = String.pad_trailing(item, width)
         Canvas.write(canvas, item)
     end
+  end
+
+  defp trigger(%{selected: selected, map: map, on_change: on_change}) do
+    item = map[selected]
+    on_change.(selected, item)
+    {:item, selected, item}
   end
 
   defp to_map(map) do
@@ -177,8 +175,8 @@ defmodule Terminal.Select do
   defp check(state) do
     Check.assert_map(:map, state.map)
     Check.assert_integer(:count, state.count)
-    Check.assert_point2d(:origin, state.origin)
-    Check.assert_point2d(:size, state.size)
+    Check.assert_point_2d(:origin, state.origin)
+    Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:enabled, state.enabled)
     Check.assert_boolean(:focused, state.focused)

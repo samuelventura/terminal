@@ -11,8 +11,8 @@ defmodule Terminal.Canvas do
       width: width,
       height: height,
       cursor: {false, 0, 0},
-      fgcolor: @white,
-      bgcolor: @black,
+      fore: @white,
+      back: @black,
       clip: {0, 0, width, height},
       clips: []
     }
@@ -51,7 +51,7 @@ defmodule Terminal.Canvas do
   end
 
   def clear(canvas, :colors) do
-    %{canvas | fgcolor: @white, bgcolor: @black}
+    %{canvas | fore: @white, back: @black}
   end
 
   def move(%{clip: {cx, cy, _, _}} = canvas, x, y) do
@@ -62,12 +62,12 @@ defmodule Terminal.Canvas do
     %{canvas | cursor: {true, cx + x, cy + y}}
   end
 
-  def color(canvas, :fgcolor, name) do
-    %{canvas | fgcolor: color_id(name)}
+  def color(canvas, :fore, color) do
+    %{canvas | fore: color}
   end
 
-  def color(canvas, :bgcolor, name) do
-    %{canvas | bgcolor: color_id(name)}
+  def color(canvas, :back, color) do
+    %{canvas | back: color}
   end
 
   # writes a single line clipping excess to avoid terminal wrapping
@@ -76,8 +76,8 @@ defmodule Terminal.Canvas do
       x: x,
       y: y,
       data: data,
-      fgcolor: fg,
-      bgcolor: bg,
+      fore: fg,
+      back: bg,
       clip: {cx, cy, cw, ch}
     } = canvas
 
@@ -108,8 +108,8 @@ defmodule Terminal.Canvas do
       height: height,
       width: width,
       cursor: {cursor1, x1, y1},
-      bgcolor: b1,
-      fgcolor: f1
+      back: b1,
+      fore: f1
     } = canvas1
 
     %{
@@ -168,8 +168,8 @@ defmodule Terminal.Canvas do
     # restore canvas2 styles and cursor
     %{
       cursor: {cursor2, x2, y2},
-      bgcolor: b2,
-      fgcolor: f2
+      back: b2,
+      fore: f2
     } = canvas2
 
     list =
@@ -217,42 +217,13 @@ defmodule Terminal.Canvas do
     encode(term, [d | list], tail)
   end
 
-  defp encode(term, list, [{:s, s1, s2} | tail]) do
-    b1 = Bitwise.band(s1, @bold)
-    b2 = Bitwise.band(s2, @bold)
-    d1 = Bitwise.band(s1, @dimmed)
-    d2 = Bitwise.band(s2, @dimmed)
-    i1 = Bitwise.band(s1, @inverse)
-    i2 = Bitwise.band(s2, @inverse)
-
-    list =
-      case {b1, b2, d1, d2} do
-        {@bold, 0, _, @dimmed} -> [term.reset(:normal), term.set(:dimmed) | list]
-        {_, @bold, @dimmed, 0} -> [term.reset(:normal), term.set(:bold) | list]
-        {@bold, 0, _, _} -> [term.reset(:normal) | list]
-        {_, _, @dimmed, 0} -> [term.reset(:normal) | list]
-        {0, @bold, _, _} -> [term.set(:bold) | list]
-        {_, _, 0, @dimmed} -> [term.set(:dimmed) | list]
-        _ -> list
-      end
-
-    list =
-      case {i1, i2} do
-        {0, @inverse} -> [term.set(:inverse) | list]
-        {@inverse, 0} -> [term.reset(:inverse) | list]
-        _ -> list
-      end
-
-    encode(term, list, tail)
-  end
-
   defp encode(term, list, [{:b, b} | tail]) do
-    d = term.color(:bgcolor, b)
+    d = term.color(:back, b)
     encode(term, [d | list], tail)
   end
 
   defp encode(term, list, [{:f, f} | tail]) do
-    d = term.color(:fgcolor, f)
+    d = term.color(:fore, f)
     encode(term, [d | list], tail)
   end
 

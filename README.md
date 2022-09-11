@@ -29,6 +29,7 @@ Process.exit pid, :kill
 
  ## Design Guidelines
 
+- Very minimal escape sequences to ensure Linux TTY works.
 - Widget event handlers triggered only from keyboard events
 - Use react state and widget events instead of getters (on_change instead of get_value)
     - Corollary: Select is not focusable if on_change is nil

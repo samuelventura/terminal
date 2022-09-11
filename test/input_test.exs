@@ -1,5 +1,6 @@
 defmodule InputTest do
   use ExUnit.Case
+  use Terminal.Const
   alias Terminal.Input
 
   test "basic input check" do
@@ -32,6 +33,7 @@ defmodule InputTest do
     assert Input.findex(%{findex: 0}) == 0
     assert Input.children(:state) == []
     assert Input.children(:state, []) == :state
+    assert Input.refocus(:state, :dir) == :state
 
     # react update
     on_change = fn value -> value end
@@ -49,22 +51,27 @@ defmodule InputTest do
     # reset of calculated props
     assert Input.update(initial, text: "text") == %{initial | text: "text", cursor: 4}
 
-    assert Input.handle(%{}, {:key, 0, "\t"}) == {%{}, {:focus, :next}}
-    assert Input.handle(%{}, {:key, nil, "\r"}) == {%{}, {:focus, :next}}
+    # triggers and navigation
+    assert Input.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
+    assert Input.handle(%{}, {:key, :any, @arrow_down}) == {%{}, {:focus, :next}}
+    assert Input.handle(%{}, {:key, @alt, "\t"}) == {%{}, {:focus, :prev}}
+    assert Input.handle(%{}, {:key, @alt, @arrow_up}) == {%{}, {:focus, :prev}}
+
+    assert Input.handle(%{}, {:key, :any, "\r"}) == {%{}, {:focus, :next}}
 
     # ignore keyboard events
-    assert Input.handle(initial, {:key, nil, :arrow_left}) == {initial, nil}
-    assert Input.handle(initial, {:key, nil, :arrow_right}) == {initial, nil}
-    assert Input.handle(initial, {:key, nil, :delete}) == {initial, nil}
-    assert Input.handle(initial, {:key, nil, :backspace}) == {initial, nil}
-    assert Input.handle(initial, {:key, nil, :home}) == {initial, nil}
-    assert Input.handle(initial, {:key, nil, :end}) == {initial, nil}
+    assert Input.handle(initial, {:key, :any, @arrow_left}) == {initial, nil}
+    assert Input.handle(initial, {:key, :any, @arrow_right}) == {initial, nil}
+    assert Input.handle(initial, {:key, :any, @delete}) == {initial, nil}
+    assert Input.handle(initial, {:key, :any, @backspace}) == {initial, nil}
+    assert Input.handle(initial, {:key, :any, @home}) == {initial, nil}
+    assert Input.handle(initial, {:key, :any, @hend}) == {initial, nil}
     assert Input.handle(initial, {:key, 0, "a"}) == {initial, nil}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "a"}, {:key, 0, :backspace}) ==
+    assert Input.handle(%{initial | size: {10, 1}, text: "a"}, {:key, 0, @backspace}) ==
              {%{initial | size: {10, 1}, text: "a"}, nil}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "a", cursor: 1}, {:key, 0, :delete}) ==
+    assert Input.handle(%{initial | size: {10, 1}, text: "a", cursor: 1}, {:key, 0, @delete}) ==
              {%{initial | size: {10, 1}, text: "a", cursor: 1}, nil}
 
     # handle text input
@@ -80,10 +87,10 @@ defmodule InputTest do
     assert Input.handle(%{initial | size: {10, 1}, text: "ab", cursor: 1}, {:key, 0, "c"}) ==
              {%{initial | size: {10, 1}, text: "acb", cursor: 2}, {:text, "acb"}}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "abc", cursor: 1}, {:key, 0, :delete}) ==
+    assert Input.handle(%{initial | size: {10, 1}, text: "abc", cursor: 1}, {:key, 0, @delete}) ==
              {%{initial | size: {10, 1}, text: "ac", cursor: 1}, {:text, "ac"}}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "abc", cursor: 1}, {:key, 0, :backspace}) ==
+    assert Input.handle(%{initial | size: {10, 1}, text: "abc", cursor: 1}, {:key, 0, @backspace}) ==
              {%{initial | size: {10, 1}, text: "bc", cursor: 0}, {:text, "bc"}}
   end
 end

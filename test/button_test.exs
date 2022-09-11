@@ -1,5 +1,6 @@
 defmodule ButtonTest do
   use ExUnit.Case
+  use Terminal.Const
   alias Terminal.Button
 
   test "basic button check" do
@@ -30,6 +31,7 @@ defmodule ButtonTest do
     assert Button.findex(%{findex: 0}) == 0
     assert Button.children(:state) == []
     assert Button.children(:state, []) == :state
+    assert Button.refocus(:state, :dir) == :state
 
     # react update
     on_click = fn -> :click end
@@ -43,9 +45,15 @@ defmodule ButtonTest do
     assert Button.update(initial, text: "text") == %{initial | text: "text"}
     assert Button.update(initial, on_click: on_click) == %{initial | on_click: on_click}
 
-    assert Button.handle(%{}, {:key, 0, "\t"}) == {%{}, {:focus, :next}}
+    # triggers and navigation
+    assert Button.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
+    assert Button.handle(%{}, {:key, :any, @arrow_down}) == {%{}, {:focus, :next}}
+    assert Button.handle(%{}, {:key, :any, @arrow_right}) == {%{}, {:focus, :next}}
+    assert Button.handle(%{}, {:key, @alt, "\t"}) == {%{}, {:focus, :prev}}
+    assert Button.handle(%{}, {:key, @alt, @arrow_up}) == {%{}, {:focus, :prev}}
+    assert Button.handle(%{}, {:key, @alt, @arrow_left}) == {%{}, {:focus, :prev}}
 
-    assert Button.handle(%{on_click: on_click}, {:key, nil, "\r"}) ==
+    assert Button.handle(%{on_click: on_click}, {:key, :any, "\r"}) ==
              {%{on_click: on_click}, :click}
   end
 end

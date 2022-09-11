@@ -4,6 +4,10 @@ defmodule Terminal.Tty do
     {module, state}
   end
 
+  def close({module, state}) do
+    module.close(state)
+  end
+
   def handle({module, state}, msg) do
     case module.handle(state, msg) do
       {state, true, data} -> {{module, state}, true, data}

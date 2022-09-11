@@ -1,5 +1,6 @@
 defmodule Terminal.Radio do
   @behaviour Terminal.Window
+  use Terminal.Const
   alias Terminal.Check
   alias Terminal.Radio
   alias Terminal.Canvas
@@ -75,44 +76,35 @@ defmodule Terminal.Radio do
     check(state)
   end
 
-  def handle(state, {:key, _, :arrow_right}) do
+  def handle(state, {:key, _, @arrow_right}) do
     %{count: count, selected: selected} = state
     current = selected
     selected = if selected < count - 1, do: selected + 1, else: selected
     state = %{state | selected: selected}
 
     case selected do
-      ^current ->
-        {state, nil}
-
-      _ ->
-        item = state.map[selected]
-        state.on_change.(selected, item)
-        {state, {:item, selected, item}}
+      ^current -> {state, nil}
+      _ -> {state, trigger(state)}
     end
   end
 
-  def handle(state, {:key, _, :arrow_left}) do
+  def handle(state, {:key, _, @arrow_left}) do
     %{selected: selected} = state
     current = selected
     selected = if selected > 0, do: selected - 1, else: selected
     state = %{state | selected: selected}
 
     case selected do
-      ^current ->
-        {state, nil}
-
-      _ ->
-        item = state.map[selected]
-        state.on_change.(selected, item)
-        {state, {:item, selected, item}}
+      ^current -> {state, nil}
+      _ -> {state, trigger(state)}
     end
   end
 
-  def handle(state, {:key, 0, "\t"}), do: {state, {:focus, :next}}
-  def handle(state, {:key, 2, "\t"}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, _, :arrow_down}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, :arrow_up}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, @arrow_down}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, @alt, "\r"}), do: {state, trigger(state)}
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
   def handle(state, _event), do: {state, nil}
 
@@ -146,20 +138,20 @@ defmodule Terminal.Radio do
           canvas =
             case {enabled, focused, i == selected} do
               {false, _, _} ->
-                canvas = Canvas.color(canvas, :fgcolor, theme.fore_disabled)
-                Canvas.color(canvas, :bgcolor, theme.back_disabled)
+                canvas = Canvas.color(canvas, :fore, theme.fore_disabled)
+                Canvas.color(canvas, :back, theme.back_disabled)
 
               {true, true, true} ->
-                canvas = Canvas.color(canvas, :fgcolor, theme.fore_focused)
-                Canvas.color(canvas, :bgcolor, theme.back_focused)
+                canvas = Canvas.color(canvas, :fore, theme.fore_focused)
+                Canvas.color(canvas, :back, theme.back_focused)
 
               {true, false, true} ->
-                canvas = Canvas.color(canvas, :fgcolor, theme.fore_selected)
-                Canvas.color(canvas, :bgcolor, theme.back_selected)
+                canvas = Canvas.color(canvas, :fore, theme.fore_selected)
+                Canvas.color(canvas, :back, theme.back_selected)
 
               _ ->
-                canvas = Canvas.color(canvas, :fgcolor, theme.fore_editable)
-                Canvas.color(canvas, :bgcolor, theme.back_editable)
+                canvas = Canvas.color(canvas, :fore, theme.fore_editable)
+                Canvas.color(canvas, :back, theme.back_editable)
             end
 
           item = Map.get(map, i)
@@ -172,6 +164,12 @@ defmodule Terminal.Radio do
     canvas
   end
 
+  defp trigger(%{selected: selected, map: map, on_change: on_change}) do
+    item = map[selected]
+    on_change.(selected, item)
+    {:item, selected, item}
+  end
+
   defp to_map(map) do
     for item <- map, reduce: {0, %{}} do
       {count, map} ->
@@ -182,8 +180,8 @@ defmodule Terminal.Radio do
   defp check(state) do
     Check.assert_map(:map, state.map)
     Check.assert_integer(:count, state.count)
-    Check.assert_point2d(:origin, state.origin)
-    Check.assert_point2d(:size, state.size)
+    Check.assert_point_2d(:origin, state.origin)
+    Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:enabled, state.enabled)
     Check.assert_boolean(:focused, state.focused)

@@ -1,5 +1,6 @@
 defmodule SelectTest do
   use ExUnit.Case
+  use Terminal.Const
   alias Terminal.Select
 
   test "basic select check" do
@@ -34,6 +35,7 @@ defmodule SelectTest do
     assert Select.findex(%{findex: 0}) == 0
     assert Select.children(:state) == []
     assert Select.children(:state, []) == :state
+    assert Select.refocus(:state, :dir) == :state
 
     # react update
     on_change = fn index, value -> {index, value} end
@@ -60,32 +62,36 @@ defmodule SelectTest do
                offset: 0
            }
 
-    assert Select.handle(%{}, {:key, 0, "\t"}) == {%{}, {:focus, :next}}
-    assert Select.handle(%{}, {:key, nil, "\r"}) == {%{}, {:focus, :next}}
+    # triggers and navigation
+    assert Select.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
+    assert Select.handle(%{}, {:key, :any, @arrow_right}) == {%{}, {:focus, :next}}
+    assert Select.handle(%{}, {:key, @alt, "\t"}) == {%{}, {:focus, :prev}}
+    assert Select.handle(%{}, {:key, @alt, @arrow_left}) == {%{}, {:focus, :prev}}
 
-    assert Select.handle(initial, {:key, nil, :arrow_up}) == {initial, nil}
-    assert Select.handle(initial, {:key, nil, :arrow_down}) == {%{initial | offset: 1}, nil}
+    # ignore keyboard events
+    assert Select.handle(initial, {:key, :any, @arrow_up}) == {initial, nil}
+    assert Select.handle(initial, {:key, :any, @arrow_down}) == {%{initial | offset: 1}, nil}
 
     # up/down/enter
     dual = Select.init(items: ["item0", "item1"], size: {0, 2}, on_change: on_change)
-    assert Select.handle(dual, {:key, nil, :arrow_up}) == {dual, nil}
+    assert Select.handle(dual, {:key, :any, @arrow_up}) == {dual, nil}
 
-    assert Select.handle(%{dual | selected: 1}, {:key, nil, :arrow_down}) ==
+    assert Select.handle(%{dual | selected: 1}, {:key, :any, @arrow_down}) ==
              {%{dual | selected: 1}, nil}
 
-    assert Select.handle(dual, {:key, nil, :arrow_down}) ==
+    assert Select.handle(dual, {:key, :any, @arrow_down}) ==
              {%{dual | selected: 1}, {:item, 1, "item1"}}
 
-    assert Select.handle(%{dual | selected: 1}, {:key, nil, :arrow_up}) ==
+    assert Select.handle(%{dual | selected: 1}, {:key, :any, @arrow_up}) ==
              {dual, {:item, 0, "item0"}}
 
     # offset
     dual = Select.init(items: ["item0", "item1"], size: {0, 1})
 
-    assert Select.handle(dual, {:key, nil, :arrow_down}) ==
+    assert Select.handle(dual, {:key, :any, @arrow_down}) ==
              {%{dual | offset: 1, selected: 1}, {:item, 1, "item1"}}
 
-    assert Select.handle(%{dual | offset: 1, selected: 1}, {:key, nil, :arrow_up}) ==
+    assert Select.handle(%{dual | offset: 1, selected: 1}, {:key, :any, @arrow_up}) ==
              {dual, {:item, 0, "item0"}}
   end
 end

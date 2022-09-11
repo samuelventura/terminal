@@ -1,5 +1,6 @@
 defmodule RadioTest do
   use ExUnit.Case
+  use Terminal.Const
   alias Terminal.Radio
 
   test "basic radio check" do
@@ -33,6 +34,7 @@ defmodule RadioTest do
     assert Radio.findex(%{findex: 0}) == 0
     assert Radio.children(:state) == []
     assert Radio.children(:state, []) == :state
+    assert Radio.refocus(:state, :dir) == :state
 
     # react update
     on_change = fn index, value -> {index, value} end
@@ -57,23 +59,27 @@ defmodule RadioTest do
                selected: 0
            }
 
-    assert Radio.handle(%{}, {:key, 0, "\t"}) == {%{}, {:focus, :next}}
-    assert Radio.handle(%{}, {:key, nil, "\r"}) == {%{}, {:focus, :next}}
+    # triggers and navigation
+    assert Radio.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
+    assert Radio.handle(%{}, {:key, :any, @arrow_down}) == {%{}, {:focus, :next}}
+    assert Radio.handle(%{}, {:key, :any, "\r"}) == {%{}, {:focus, :next}}
+    assert Radio.handle(%{}, {:key, @alt, @arrow_up}) == {%{}, {:focus, :prev}}
 
-    assert Radio.handle(initial, {:key, nil, :arrow_left}) == {initial, nil}
-    assert Radio.handle(initial, {:key, nil, :arrow_right}) == {initial, nil}
+    # ignore keyboard events
+    assert Radio.handle(initial, {:key, :any, @arrow_left}) == {initial, nil}
+    assert Radio.handle(initial, {:key, :any, @arrow_right}) == {initial, nil}
 
     # up/down/enter
     dual = Radio.init(items: ["item0", "item1"], size: {0, 2}, on_change: on_change)
-    assert Radio.handle(dual, {:key, nil, :arrow_left}) == {dual, nil}
+    assert Radio.handle(dual, {:key, :any, @arrow_left}) == {dual, nil}
 
-    assert Radio.handle(%{dual | selected: 1}, {:key, nil, :arrow_right}) ==
+    assert Radio.handle(%{dual | selected: 1}, {:key, :any, @arrow_right}) ==
              {%{dual | selected: 1}, nil}
 
-    assert Radio.handle(dual, {:key, nil, :arrow_right}) ==
+    assert Radio.handle(dual, {:key, :any, @arrow_right}) ==
              {%{dual | selected: 1}, {:item, 1, "item1"}}
 
-    assert Radio.handle(%{dual | selected: 1}, {:key, nil, :arrow_left}) ==
+    assert Radio.handle(%{dual | selected: 1}, {:key, :any, @arrow_left}) ==
              {dual, {:item, 0, "item0"}}
   end
 end

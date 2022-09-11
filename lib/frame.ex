@@ -13,8 +13,8 @@ defmodule Terminal.Frame do
     origin = Keyword.get(opts, :origin, {0, 0})
     theme = Keyword.get(opts, :theme, :default)
     theme = Theme.get(theme)
-    bgcolor = Keyword.get(opts, :bgcolor, theme.back_readonly)
-    fgcolor = Keyword.get(opts, :fgcolor, theme.fore_readonly)
+    back = Keyword.get(opts, :back, theme.back_readonly)
+    fore = Keyword.get(opts, :fore, theme.fore_readonly)
 
     state = %{
       size: size,
@@ -23,8 +23,8 @@ defmodule Terminal.Frame do
       bracket: bracket,
       text: text,
       origin: origin,
-      bgcolor: bgcolor,
-      fgcolor: fgcolor
+      back: back,
+      fore: fore
     }
 
     check(state)
@@ -55,13 +55,13 @@ defmodule Terminal.Frame do
       style: style,
       size: {width, height},
       text: text,
-      bgcolor: bgcolor,
-      fgcolor: fgcolor
+      back: back,
+      fore: fore
     } = state
 
     canvas = Canvas.clear(canvas, :colors)
-    canvas = Canvas.color(canvas, :bgcolor, bgcolor)
-    canvas = Canvas.color(canvas, :fgcolor, fgcolor)
+    canvas = Canvas.color(canvas, :back, back)
+    canvas = Canvas.color(canvas, :fore, fore)
     last = height - 1
 
     canvas =
@@ -107,13 +107,13 @@ defmodule Terminal.Frame do
 
   defp check(state) do
     Check.assert_string(:text, state.text)
-    Check.assert_point2d(:origin, state.origin)
-    Check.assert_point2d(:size, state.size)
+    Check.assert_point_2d(:origin, state.origin)
+    Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:bracket, state.bracket)
-    Check.assert_atom(:bgcolor, state.bgcolor)
-    Check.assert_atom(:fgcolor, state.fgcolor)
-    Check.assert_inlist(:style, state.style, [:single, :double])
+    Check.assert_in_range(:fore, state.back, 0..15)
+    Check.assert_in_range(:back, state.fore, 0..8)
+    Check.assert_in_list(:style, state.style, [:single, :double])
     state
   end
 

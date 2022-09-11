@@ -5,10 +5,6 @@ defmodule Terminal.Const do
       @alt 2
       @fun 4
 
-      @bold 1
-      @dimmed 2
-      @inverse 4
-
       @black 0
       @red 1
       @green 2
@@ -17,36 +13,52 @@ defmodule Terminal.Const do
       @magenta 5
       @cyan 6
       @white 7
-      @bblack 8
-      @bred 9
-      @bgreen 10
-      @byellow 11
-      @bblue 12
-      @bmagenta 13
-      @bcyan 14
-      @bwhite 15
 
-      defp color_id(color) do
-        case color do
-          :black -> @black
-          :red -> @red
-          :green -> @green
-          :yellow -> @yellow
-          :blue -> @blue
-          :magenta -> @magenta
-          :cyan -> @cyan
-          :white -> @white
-          :bblack -> @bblack
-          :bred -> @bred
-          :bgreen -> @bgreen
-          :byellow -> @byellow
-          :bblue -> @bblue
-          :bmagenta -> @bmagenta
-          :bcyan -> @bcyan
-          :bwhite -> @bwhite
-          _ -> color
-        end
-      end
+      @bright 8
+
+      @bblack @bright + @black
+      @bred @bright + @red
+      @bgreen @bright + @green
+      @byellow @bright + @yellow
+      @bblue @bright + @blue
+      @bmagenta @bright + @magenta
+      @bcyan @bright + @cyan
+      @bwhite @bright + @white
+
+      @up 1
+      @down 2
+      @right 3
+      @left 4
+
+      @fi 100
+      @f1 101
+      @f2 102
+      @f3 103
+      @f4 104
+      @f5 105
+      @f6 106
+      @f7 107
+      @f8 108
+      @f9 109
+      @f10 110
+      @f11 111
+      @f12 112
+
+      @home 201
+      @hend 202
+      @insert 203
+      @delete 204
+      @backspace 205
+
+      @page 300
+      @page_up @page + @up
+      @page_down @page + @down
+
+      @arrow 400
+      @arrow_up @arrow + @up
+      @arrow_down @arrow + @down
+      @arrow_right @arrow + @right
+      @arrow_left @arrow + @left
     end
   end
 end

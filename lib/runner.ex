@@ -29,13 +29,7 @@ defmodule Terminal.Runner do
   # code cursor not shown under inverse
   # setup code cursor to linux default
   defp init_tty(tty, term) do
-    Tty.write!(tty, [
-      term.clear(:all),
-      term.hide(:cursor),
-      term.mouse(:standard),
-      term.mouse(:extended),
-      term.cursor(:style, :blinking_underline)
-    ])
+    Tty.write!(tty, term.init())
   end
 
   defp loop(tty, term, buffer, app, canvas) do

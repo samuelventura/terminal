@@ -1,5 +1,6 @@
 defmodule Terminal.Input do
   @behaviour Terminal.Window
+  use Terminal.Const
   alias Terminal.Check
   alias Terminal.Input
   alias Terminal.Canvas
@@ -71,37 +72,37 @@ defmodule Terminal.Input do
     Map.merge(state, props)
   end
 
-  def handle(state, {:key, 0, "\t"}), do: {state, {:focus, :next}}
-  def handle(state, {:key, 2, "\t"}), do: {state, {:focus, :prev}}
-  def handle(state, {:key, _, :arrow_down}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, :arrow_up}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, @arrow_down}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
 
-  def handle(%{cursor: cursor} = state, {:key, _, :arrow_left}) do
+  def handle(%{cursor: cursor} = state, {:key, _, @arrow_left}) do
     cursor = if cursor > 0, do: cursor - 1, else: cursor
     state = %{state | cursor: cursor}
     {state, nil}
   end
 
-  def handle(%{cursor: cursor, text: text} = state, {:key, _, :arrow_right}) do
+  def handle(%{cursor: cursor, text: text} = state, {:key, _, @arrow_right}) do
     count = String.length(text)
     cursor = if cursor < count, do: cursor + 1, else: cursor
     state = %{state | cursor: cursor}
     {state, nil}
   end
 
-  def handle(state, {:key, _, :home}) do
+  def handle(state, {:key, _, @home}) do
     state = %{state | cursor: 0}
     {state, nil}
   end
 
-  def handle(%{text: text} = state, {:key, _, :end}) do
+  def handle(%{text: text} = state, {:key, _, @hend}) do
     count = String.length(text)
     state = %{state | cursor: count}
     {state, nil}
   end
 
-  def handle(%{cursor: cursor, text: text} = state, {:key, _, :backspace}) do
+  def handle(%{cursor: cursor, text: text} = state, {:key, _, @backspace}) do
     case cursor do
       0 ->
         {state, nil}
@@ -117,7 +118,7 @@ defmodule Terminal.Input do
     end
   end
 
-  def handle(%{cursor: cursor, text: text} = state, {:key, _, :delete}) do
+  def handle(%{cursor: cursor, text: text} = state, {:key, _, @delete}) do
     count = String.length(text)
 
     case cursor do
@@ -174,20 +175,20 @@ defmodule Terminal.Input do
     canvas =
       case {enabled, focused, dotted} do
         {_, _, true} ->
-          canvas = Canvas.color(canvas, :fgcolor, theme.fore_readonly)
-          Canvas.color(canvas, :bgcolor, theme.back_readonly)
+          canvas = Canvas.color(canvas, :fore, theme.fore_readonly)
+          Canvas.color(canvas, :back, theme.back_readonly)
 
         {false, _, _} ->
-          canvas = Canvas.color(canvas, :fgcolor, theme.fore_disabled)
-          Canvas.color(canvas, :bgcolor, theme.back_disabled)
+          canvas = Canvas.color(canvas, :fore, theme.fore_disabled)
+          Canvas.color(canvas, :back, theme.back_disabled)
 
         {true, true, _} ->
-          canvas = Canvas.color(canvas, :fgcolor, theme.fore_focused)
-          Canvas.color(canvas, :bgcolor, theme.back_focused)
+          canvas = Canvas.color(canvas, :fore, theme.fore_focused)
+          Canvas.color(canvas, :back, theme.back_focused)
 
         _ ->
-          canvas = Canvas.color(canvas, :fgcolor, theme.fore_editable)
-          Canvas.color(canvas, :bgcolor, theme.back_editable)
+          canvas = Canvas.color(canvas, :fore, theme.fore_editable)
+          Canvas.color(canvas, :back, theme.back_editable)
       end
 
     text =
@@ -211,8 +212,8 @@ defmodule Terminal.Input do
   end
 
   defp check(state) do
-    Check.assert_point2d(:origin, state.origin)
-    Check.assert_point2d(:size, state.size)
+    Check.assert_point_2d(:origin, state.origin)
+    Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:enabled, state.enabled)
     Check.assert_boolean(:focused, state.focused)

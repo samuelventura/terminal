@@ -1,5 +1,6 @@
 defmodule Terminal.Demo do
   use Terminal.App
+  use Terminal.Const
 
   def init(opts) do
     size = Keyword.fetch!(opts, :size)
@@ -206,13 +207,13 @@ defmodule Terminal.Demo do
     {type, set_type} = use_state(react, :type, "DHCP")
     {address, set_address} = use_state(react, :address, "10.77.0.10")
     {netmask, set_netmask} = use_state(react, :netmask, "255.0.0.0")
-    {{fgc, bgc, msg}, set_result} = use_state(react, :result, {:black, :black, ""})
+    {{fgc, bgc, msg}, set_result} = use_state(react, :result, {@black, @black, ""})
 
     on_type = fn _index, name -> set_type.(name) end
 
     on_save = fn ->
       log("On save: #{type} ip:#{address} nm:#{netmask}")
-      set_result.({:white, :black, "Saving..."})
+      set_result.({@white, @black, "Saving..."})
       set_busy.(true)
 
       Task.start(fn ->
@@ -222,13 +223,13 @@ defmodule Terminal.Demo do
         case type do
           "Manual" ->
             case {valid_ip?(address), valid_ip?(netmask)} do
-              {false, _} -> set_result.({:red, :black, "Invalid address: #{address}"})
-              {_, false} -> set_result.({:red, :black, "Invalid netmask: #{netmask}"})
-              _ -> set_result.({:blue, :black, "Save OK"})
+              {false, _} -> set_result.({@red, @black, "Invalid address: #{address}"})
+              {_, false} -> set_result.({@red, @black, "Invalid netmask: #{netmask}"})
+              _ -> set_result.({@blue, @black, "Save OK"})
             end
 
           "DHCP" ->
-            set_result.({:blue, :black, "Save OK"})
+            set_result.({@blue, @black, "Save OK"})
         end
 
         set_busy.(false)
@@ -237,7 +238,7 @@ defmodule Terminal.Demo do
 
     markup :main, Panel, origin: origin, size: size do
       markup(:title, Label, origin: {0, 0}, size: {w, 1}, text: "Interface eth0")
-      markup(:result, Label, origin: {0, 5}, size: {w, 1}, text: msg, bgcolor: bgc, fgcolor: fgc)
+      markup(:result, Label, origin: {0, 5}, size: {w, 1}, text: msg, back: bgc, fore: fgc)
 
       markup(:type, Radio,
         origin: {0, 1},

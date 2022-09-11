@@ -5,6 +5,7 @@ defmodule Terminal.App do
   defmacro __using__(_opts) do
     quote do
       @behaviour Terminal.Runnable
+      use Terminal.Const
       import Terminal.React
       import Terminal.App, only: [app_init: 2]
       alias Terminal.Panel
