@@ -81,5 +81,7 @@ defmodule RadioTest do
 
     assert Radio.handle(%{dual | selected: 1}, {:key, :any, @arrow_left}) ==
              {dual, {:item, 0, "item0"}}
+
+    assert Radio.handle(dual, {:key, @alt, "\r"}) == {dual, {:item, 0, "item0"}}
   end
 end

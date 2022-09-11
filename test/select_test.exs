@@ -93,5 +93,7 @@ defmodule SelectTest do
 
     assert Select.handle(%{dual | offset: 1, selected: 1}, {:key, :any, @arrow_up}) ==
              {dual, {:item, 0, "item0"}}
+
+    assert Select.handle(dual, {:key, @alt, "\r"}) == {dual, {:item, 0, "item0"}}
   end
 end

@@ -12,6 +12,7 @@ defmodule Terminal.Demo do
     {name, set_name} = use_state(react, :name, "Color")
 
     on_change = fn index, name ->
+      log("Demo #{index} #{name}")
       set_index.(index)
       set_name.(name)
     end
@@ -225,7 +226,10 @@ defmodule Terminal.Demo do
     {netmask, set_netmask} = use_state(react, :netmask, "255.0.0.0")
     {{fgc, bgc, msg}, set_result} = use_state(react, :result, {@black, @black, ""})
 
-    on_type = fn _index, name -> set_type.(name) end
+    on_type = fn index, name ->
+      log("Type #{index} #{name}")
+      set_type.(name)
+    end
 
     on_save = fn ->
       log("On save: #{type} ip:#{address} nm:#{netmask}")
