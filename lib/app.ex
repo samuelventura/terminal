@@ -30,9 +30,6 @@ defmodule Terminal.App do
   end
 
   def handle(%{func: func, opts: opts, key: key, mote: mote, react: react}, event) do
-    on_event = Map.get(opts, :on_event, fn _ -> nil end)
-    on_event.(event)
-
     mote =
       case event do
         {:cmd, :changes, nil} ->
@@ -43,6 +40,8 @@ defmodule Terminal.App do
           mote
 
         _ ->
+          on_event = Map.get(opts, :on_event, fn _ -> nil end)
+          on_event.(event)
           {mote, _cmd} = mote_handle(mote, event)
           mote
       end
