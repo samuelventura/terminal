@@ -11,7 +11,7 @@ defmodule SelectTest do
              count: 0,
              map: %{},
              offset: 0,
-             selected: 0,
+             selected: -1,
              focused: false,
              visible: true,
              enabled: true,
@@ -70,7 +70,7 @@ defmodule SelectTest do
 
     # ignore keyboard events
     assert Select.handle(initial, {:key, :any, @arrow_up}) == {initial, nil}
-    assert Select.handle(initial, {:key, :any, @arrow_down}) == {%{initial | offset: 1}, nil}
+    assert Select.handle(initial, {:key, :any, @arrow_down}) == {initial, nil}
 
     # up/down/enter
     dual = Select.init(items: ["item0", "item1"], size: {0, 2}, on_change: on_change)
@@ -94,6 +94,15 @@ defmodule SelectTest do
     assert Select.handle(%{dual | offset: 1, selected: 1}, {:key, :any, @arrow_up}) ==
              {dual, {:item, 0, "item0"}}
 
+    # offset correction
+    assert Select.handle(%{dual | offset: -1, selected: -1}, {:key, :any, @arrow_down}) ==
+             {dual, {:item, 0, "item0"}}
+
+    assert Select.update(initial, selected: 4) == initial
+    assert Select.update(dual, selected: 4) == %{dual | selected: -1}
+    assert Select.update(dual, selected: -2) == %{dual | selected: -1}
+
+    # retrigger on change
     assert Select.handle(dual, {:key, @alt, "\r"}) == {dual, {:item, 0, "item0"}}
   end
 end

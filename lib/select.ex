@@ -37,6 +37,7 @@ defmodule Terminal.Select do
       on_change: on_change
     }
 
+    state = offset_update(state)
     check(state)
   end
 
@@ -76,31 +77,32 @@ defmodule Terminal.Select do
       end
 
     state = Map.merge(state, props)
+    state = offset_update(state)
     check(state)
   end
 
   def handle(state, {:key, _, @arrow_down}) do
-    %{count: count, size: {_, height}, selected: selected, offset: offset} = state
-    current = selected
+    %{count: count, selected: selected} = state
+    previous = selected
     selected = if selected < count - 1, do: selected + 1, else: selected
-    offset = if selected < offset + height, do: offset, else: 1 + selected - height
-    state = %{state | selected: selected, offset: offset}
+    state = %{state | selected: selected}
+    state = offset_update(state)
 
     case selected do
-      ^current -> {state, nil}
+      ^previous -> {state, nil}
       _ -> {state, trigger(state)}
     end
   end
 
   def handle(state, {:key, _, @arrow_up}) do
-    %{selected: selected, offset: offset} = state
-    current = selected
+    %{selected: selected} = state
+    previous = selected
     selected = if selected > 0, do: selected - 1, else: selected
-    offset = if selected < offset, do: selected, else: offset
-    state = %{state | selected: selected, offset: offset}
+    state = %{state | selected: selected}
+    state = offset_update(state)
 
     case selected do
-      ^current -> {state, nil}
+      ^previous -> {state, nil}
       _ -> {state, trigger(state)}
     end
   end
@@ -157,6 +159,25 @@ defmodule Terminal.Select do
         item = String.pad_trailing(item, width)
         Canvas.write(canvas, item)
     end
+  end
+
+  defp offset_update(
+         %{
+           selected: selected,
+           size: {_, height},
+           count: count,
+           offset: offset
+         } = state
+       ) do
+    selected = if selected < 0, do: -1, else: selected
+    selected = if selected >= count, do: -1, else: selected
+
+    offsel = max(0, selected)
+    offmin = max(0, offsel - height + 1)
+    offset = if offset < offmin, do: offmin, else: offset
+    offset = if offset > offsel, do: offsel, else: offset
+
+    %{state | selected: selected, offset: offset}
   end
 
   defp trigger(%{selected: selected, map: map, on_change: on_change}) do

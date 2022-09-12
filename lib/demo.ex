@@ -14,7 +14,10 @@ defmodule Terminal.Demo do
     on_change = fn index, name ->
       log("Demo #{index} #{name}")
       set_index.(index)
-      set_name.(name)
+      # nil on alt+enter for invalid
+      set_name.("#{name}")
+      # trigger an invalid index
+      if name == "Invalid", do: set_index.(-1)
     end
 
     tab_origin = {13, 2}
@@ -34,7 +37,7 @@ defmodule Terminal.Demo do
         size: {10, 4},
         selected: index,
         on_change: on_change,
-        items: ["Color", "Timer", "Effects", "Counter", "Network", "Password"]
+        items: ["Color", "Timer", "Effects", "Counter", "Network", "Password", "Invalid"]
       )
 
       markup(:tab_frame, Frame,
@@ -49,6 +52,7 @@ defmodule Terminal.Demo do
 
   def tabs(_react, %{tab: tab, origin: origin, size: size}) do
     case tab do
+      -1 -> markup(:invalid, Panel, [])
       0 -> markup(:color, &color/2, origin: origin, size: size)
       1 -> markup(:timer, &timer/2, origin: origin, size: size)
       2 -> markup(:effects, &effects/2, origin: origin, size: size)
