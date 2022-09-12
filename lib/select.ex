@@ -83,26 +83,70 @@ defmodule Terminal.Select do
 
   def handle(state, {:key, _, @arrow_down}) do
     %{count: count, selected: selected} = state
-    previous = selected
-    selected = if selected < count - 1, do: selected + 1, else: selected
-    state = %{state | selected: selected}
+    next = min(selected + 1, count - 1)
+    state = %{state | selected: next}
     state = offset_update(state)
 
-    case selected do
-      ^previous -> {state, nil}
+    case state.selected do
+      ^selected -> {state, nil}
       _ -> {state, trigger(state)}
     end
   end
 
   def handle(state, {:key, _, @arrow_up}) do
     %{selected: selected} = state
-    previous = selected
-    selected = if selected > 0, do: selected - 1, else: selected
-    state = %{state | selected: selected}
+    next = max(0, selected - 1)
+    state = %{state | selected: next}
     state = offset_update(state)
 
-    case selected do
-      ^previous -> {state, nil}
+    case state.selected do
+      ^selected -> {state, nil}
+      _ -> {state, trigger(state)}
+    end
+  end
+
+  def handle(state, {:key, _, @page_down}) do
+    %{count: count, selected: selected, size: {_, height}} = state
+    next = min(selected + height, count - 1)
+    state = %{state | selected: next}
+    state = offset_update(state)
+
+    case state.selected do
+      ^selected -> {state, nil}
+      _ -> {state, trigger(state)}
+    end
+  end
+
+  def handle(state, {:key, _, @page_up}) do
+    %{selected: selected, size: {_, height}} = state
+    next = max(0, selected - height)
+    state = %{state | selected: next}
+    state = offset_update(state)
+
+    case state.selected do
+      ^selected -> {state, nil}
+      _ -> {state, trigger(state)}
+    end
+  end
+
+  def handle(state, {:key, _, @hend}) do
+    %{count: count, selected: selected} = state
+    state = %{state | selected: count - 1}
+    state = offset_update(state)
+
+    case state.selected do
+      ^selected -> {state, nil}
+      _ -> {state, trigger(state)}
+    end
+  end
+
+  def handle(state, {:key, _, @home}) do
+    %{selected: selected} = state
+    state = %{state | selected: 0}
+    state = offset_update(state)
+
+    case state.selected do
+      ^selected -> {state, nil}
       _ -> {state, trigger(state)}
     end
   end
@@ -182,8 +226,8 @@ defmodule Terminal.Select do
 
   defp trigger(%{selected: selected, map: map, on_change: on_change}) do
     item = map[selected]
-    on_change.(selected, item)
-    {:item, selected, item}
+    resp = on_change.(selected, item)
+    {:item, selected, item, resp}
   end
 
   defp to_map(map) do

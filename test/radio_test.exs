@@ -37,7 +37,7 @@ defmodule RadioTest do
     assert Radio.refocus(:state, :dir) == :state
 
     # react update
-    on_change = fn index, value -> {index, value} end
+    on_change = fn index, value -> "#{index}:#{value}" end
     assert Radio.update(initial, focused: true) == initial
     assert Radio.update(initial, count: -1) == initial
     assert Radio.update(initial, map: :map) == initial
@@ -62,14 +62,15 @@ defmodule RadioTest do
     # triggers and navigation
     assert Radio.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
     assert Radio.handle(%{}, {:key, :any, @arrow_down}) == {%{}, {:focus, :next}}
-    assert Radio.handle(%{}, {:key, :any, "\r"}) == {%{}, {:focus, :next}}
+    assert Radio.handle(%{}, {:key, @alt, "\t"}) == {%{}, {:focus, :prev}}
     assert Radio.handle(%{}, {:key, @alt, @arrow_up}) == {%{}, {:focus, :prev}}
+    assert Radio.handle(%{}, {:key, :any, "\r"}) == {%{}, {:focus, :next}}
 
     # ignore keyboard events
     assert Radio.handle(initial, {:key, :any, @arrow_left}) == {initial, nil}
     assert Radio.handle(initial, {:key, :any, @arrow_right}) == {initial, nil}
 
-    # up/down/enter
+    # arrow up down
     dual = Radio.init(items: ["item0", "item1"], size: {0, 2}, on_change: on_change)
     assert Radio.handle(dual, {:key, :any, @arrow_left}) == {dual, nil}
 
@@ -77,11 +78,12 @@ defmodule RadioTest do
              {%{dual | selected: 1}, nil}
 
     assert Radio.handle(dual, {:key, :any, @arrow_right}) ==
-             {%{dual | selected: 1}, {:item, 1, "item1"}}
+             {%{dual | selected: 1}, {:item, 1, "item1", "1:item1"}}
 
     assert Radio.handle(%{dual | selected: 1}, {:key, :any, @arrow_left}) ==
-             {dual, {:item, 0, "item0"}}
+             {dual, {:item, 0, "item0", "0:item0"}}
 
-    assert Radio.handle(dual, {:key, @alt, "\r"}) == {dual, {:item, 0, "item0"}}
+    # retrigger on change
+    assert Radio.handle(dual, {:key, @alt, "\r"}) == {dual, {:item, 0, "item0", "0:item0"}}
   end
 end

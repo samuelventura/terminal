@@ -38,7 +38,7 @@ defmodule SelectTest do
     assert Select.refocus(:state, :dir) == :state
 
     # react update
-    on_change = fn index, value -> {index, value} end
+    on_change = fn index, value -> "#{index}:#{value}" end
     assert Select.update(initial, focused: true) == initial
     assert Select.update(initial, count: -1) == initial
     assert Select.update(initial, map: :map) == initial
@@ -67,42 +67,64 @@ defmodule SelectTest do
     assert Select.handle(%{}, {:key, :any, @arrow_right}) == {%{}, {:focus, :next}}
     assert Select.handle(%{}, {:key, @alt, "\t"}) == {%{}, {:focus, :prev}}
     assert Select.handle(%{}, {:key, @alt, @arrow_left}) == {%{}, {:focus, :prev}}
+    assert Select.handle(%{}, {:key, 0, "\r"}) == {%{}, {:focus, :next}}
 
     # ignore keyboard events
     assert Select.handle(initial, {:key, :any, @arrow_up}) == {initial, nil}
     assert Select.handle(initial, {:key, :any, @arrow_down}) == {initial, nil}
 
-    # up/down/enter
-    dual = Select.init(items: ["item0", "item1"], size: {0, 2}, on_change: on_change)
-    assert Select.handle(dual, {:key, :any, @arrow_up}) == {dual, nil}
+    # arrow, page, up, down, home, end
+    sample = Select.init(items: ["item0", "item1", "item2"], size: {0, 2}, on_change: on_change)
 
-    assert Select.handle(%{dual | selected: 1}, {:key, :any, @arrow_down}) ==
-             {%{dual | selected: 1}, nil}
+    assert Select.handle(sample, {:key, :any, @arrow_up}) == {sample, nil}
+    assert Select.handle(sample, {:key, :any, @page_up}) == {sample, nil}
+    assert Select.handle(sample, {:key, :any, @home}) == {sample, nil}
 
-    assert Select.handle(dual, {:key, :any, @arrow_down}) ==
-             {%{dual | selected: 1}, {:item, 1, "item1"}}
+    assert Select.handle(%{sample | selected: 2}, {:key, :any, @arrow_down}) ==
+             {%{sample | selected: 2, offset: 1}, nil}
 
-    assert Select.handle(%{dual | selected: 1}, {:key, :any, @arrow_up}) ==
-             {dual, {:item, 0, "item0"}}
+    assert Select.handle(%{sample | selected: 2}, {:key, :any, @page_down}) ==
+             {%{sample | selected: 2, offset: 1}, nil}
+
+    assert Select.handle(%{sample | selected: 2}, {:key, :any, @hend}) ==
+             {%{sample | selected: 2, offset: 1}, nil}
+
+    assert Select.handle(sample, {:key, :any, @arrow_down}) ==
+             {%{sample | selected: 1}, {:item, 1, "item1", "1:item1"}}
+
+    assert Select.handle(sample, {:key, :any, @page_down}) ==
+             {%{sample | selected: 2, offset: 1}, {:item, 2, "item2", "2:item2"}}
+
+    assert Select.handle(sample, {:key, :any, @hend}) ==
+             {%{sample | selected: 2, offset: 1}, {:item, 2, "item2", "2:item2"}}
+
+    assert Select.handle(%{sample | selected: 1}, {:key, :any, @arrow_up}) ==
+             {sample, {:item, 0, "item0", "0:item0"}}
+
+    assert Select.handle(%{sample | selected: 2}, {:key, :any, @page_up}) ==
+             {sample, {:item, 0, "item0", "0:item0"}}
+
+    assert Select.handle(%{sample | selected: 2}, {:key, :any, @home}) ==
+             {sample, {:item, 0, "item0", "0:item0"}}
 
     # offset
-    dual = Select.init(items: ["item0", "item1"], size: {0, 1})
+    sample = Select.init(items: ["item0", "item1", "item2"], size: {0, 1}, on_change: on_change)
 
-    assert Select.handle(dual, {:key, :any, @arrow_down}) ==
-             {%{dual | offset: 1, selected: 1}, {:item, 1, "item1"}}
+    assert Select.handle(sample, {:key, :any, @arrow_down}) ==
+             {%{sample | offset: 1, selected: 1}, {:item, 1, "item1", "1:item1"}}
 
-    assert Select.handle(%{dual | offset: 1, selected: 1}, {:key, :any, @arrow_up}) ==
-             {dual, {:item, 0, "item0"}}
+    assert Select.handle(%{sample | offset: 1, selected: 1}, {:key, :any, @arrow_up}) ==
+             {sample, {:item, 0, "item0", "0:item0"}}
 
     # offset correction
-    assert Select.handle(%{dual | offset: -1, selected: -1}, {:key, :any, @arrow_down}) ==
-             {dual, {:item, 0, "item0"}}
+    assert Select.handle(%{sample | offset: -1, selected: -1}, {:key, :any, @arrow_down}) ==
+             {sample, {:item, 0, "item0", "0:item0"}}
 
     assert Select.update(initial, selected: 4) == initial
-    assert Select.update(dual, selected: 4) == %{dual | selected: -1}
-    assert Select.update(dual, selected: -2) == %{dual | selected: -1}
+    assert Select.update(sample, selected: 4) == %{sample | selected: -1}
+    assert Select.update(sample, selected: -2) == %{sample | selected: -1}
 
     # retrigger on change
-    assert Select.handle(dual, {:key, @alt, "\r"}) == {dual, {:item, 0, "item0"}}
+    assert Select.handle(sample, {:key, @alt, "\r"}) == {sample, {:item, 0, "item0", "0:item0"}}
   end
 end

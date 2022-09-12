@@ -166,8 +166,8 @@ defmodule Terminal.Radio do
 
   defp trigger(%{selected: selected, map: map, on_change: on_change}) do
     item = map[selected]
-    on_change.(selected, item)
-    {:item, selected, item}
+    resp = on_change.(selected, item)
+    {:item, selected, item, resp}
   end
 
   defp to_map(map) do

@@ -86,7 +86,15 @@ defmodule Terminal.Code do
     {"\e[A", @arrow_up},
     {"\e[B", @arrow_down},
     {"\e[C", @arrow_right},
-    {"\e[D", @arrow_left}
+    {"\e[D", @arrow_left},
+    # macos
+    # delete = fn + backspace
+    # shift + up/down
+    {"\e[1;2A", @page_up},
+    {"\e[1;2B", @page_down},
+    # option + up/down
+    {"\e[1;3A", @home},
+    {"\e[1;3B", @hend}
   ]
 
   @singles [

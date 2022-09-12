@@ -74,23 +74,25 @@ defmodule InputTest do
     assert Input.handle(%{initial | size: {10, 1}, text: "a", cursor: 1}, {:key, 0, @delete}) ==
              {%{initial | size: {10, 1}, text: "a", cursor: 1}, nil}
 
+    sample = Input.init(on_change: on_change)
+
     # handle text input
-    assert Input.handle(%{initial | size: {10, 1}}, {:key, 0, "a"}) ==
-             {%{initial | size: {10, 1}, text: "a", cursor: 1}, {:text, "a"}}
+    assert Input.handle(%{sample | size: {10, 1}}, {:key, 0, "a"}) ==
+             {%{sample | size: {10, 1}, text: "a", cursor: 1}, {:text, "a", "a"}}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "a", cursor: 1}, {:key, 0, "b"}) ==
-             {%{initial | size: {10, 1}, text: "ab", cursor: 2}, {:text, "ab"}}
+    assert Input.handle(%{sample | size: {10, 1}, text: "a", cursor: 1}, {:key, 0, "b"}) ==
+             {%{sample | size: {10, 1}, text: "ab", cursor: 2}, {:text, "ab", "ab"}}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "a", cursor: 0}, {:key, 0, "b"}) ==
-             {%{initial | size: {10, 1}, text: "ba", cursor: 1}, {:text, "ba"}}
+    assert Input.handle(%{sample | size: {10, 1}, text: "a", cursor: 0}, {:key, 0, "b"}) ==
+             {%{sample | size: {10, 1}, text: "ba", cursor: 1}, {:text, "ba", "ba"}}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "ab", cursor: 1}, {:key, 0, "c"}) ==
-             {%{initial | size: {10, 1}, text: "acb", cursor: 2}, {:text, "acb"}}
+    assert Input.handle(%{sample | size: {10, 1}, text: "ab", cursor: 1}, {:key, 0, "c"}) ==
+             {%{sample | size: {10, 1}, text: "acb", cursor: 2}, {:text, "acb", "acb"}}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "abc", cursor: 1}, {:key, 0, @delete}) ==
-             {%{initial | size: {10, 1}, text: "ac", cursor: 1}, {:text, "ac"}}
+    assert Input.handle(%{sample | size: {10, 1}, text: "abc", cursor: 1}, {:key, 0, @delete}) ==
+             {%{sample | size: {10, 1}, text: "ac", cursor: 1}, {:text, "ac", "ac"}}
 
-    assert Input.handle(%{initial | size: {10, 1}, text: "abc", cursor: 1}, {:key, 0, @backspace}) ==
-             {%{initial | size: {10, 1}, text: "bc", cursor: 0}, {:text, "bc"}}
+    assert Input.handle(%{sample | size: {10, 1}, text: "abc", cursor: 1}, {:key, 0, @backspace}) ==
+             {%{sample | size: {10, 1}, text: "bc", cursor: 0}, {:text, "bc", "bc"}}
   end
 end

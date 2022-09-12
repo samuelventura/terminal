@@ -112,9 +112,8 @@ defmodule Terminal.Input do
         {prefix, _} = String.split_at(prefix, cursor - 1)
         cursor = cursor - 1
         text = "#{prefix}#{suffix}"
-        state.on_change.(text)
         state = %{state | text: text, cursor: cursor}
-        {state, {:text, text}}
+        {state, trigger(state)}
     end
   end
 
@@ -129,9 +128,8 @@ defmodule Terminal.Input do
         {prefix, suffix} = String.split_at(text, cursor)
         suffix = String.slice(suffix, 1..String.length(suffix))
         text = "#{prefix}#{suffix}"
-        state.on_change.(text)
         state = %{state | text: text}
-        {state, {:text, text}}
+        {state, trigger(state)}
     end
   end
 
@@ -146,9 +144,8 @@ defmodule Terminal.Input do
       _ ->
         {prefix, suffix} = String.split_at(text, cursor)
         text = "#{prefix}#{data}#{suffix}"
-        state.on_change.(text)
         state = %{state | text: text, cursor: cursor + 1}
-        {state, {:text, text}}
+        {state, trigger(state)}
     end
   end
 
@@ -209,6 +206,11 @@ defmodule Terminal.Input do
       _ ->
         canvas
     end
+  end
+
+  defp trigger(%{on_change: on_change, text: text}) do
+    resp = on_change.(text)
+    {:text, text, resp}
   end
 
   defp check(state) do
