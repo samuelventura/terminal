@@ -76,28 +76,40 @@ defmodule Terminal.Radio do
     check(state)
   end
 
+  def handle(%{items: []} = state, {:key, _, _}), do: {state, nil}
+  def handle(%{items: []} = state, {:mouse, _, _}), do: {state, nil}
+
   def handle(state, {:key, _, @arrow_right}) do
     %{count: count, selected: selected} = state
-    current = selected
-    selected = if selected < count - 1, do: selected + 1, else: selected
-    state = %{state | selected: selected}
-
-    case selected do
-      ^current -> {state, nil}
-      _ -> {state, trigger(state)}
-    end
+    next = min(selected + 1, count - 1)
+    state = %{state | selected: next}
+    trigger(state, selected)
   end
 
   def handle(state, {:key, _, @arrow_left}) do
     %{selected: selected} = state
-    current = selected
-    selected = if selected > 0, do: selected - 1, else: selected
-    state = %{state | selected: selected}
+    next = max(0, selected - 1)
+    state = %{state | selected: next}
+    trigger(state, selected)
+  end
 
-    case selected do
-      ^current -> {state, nil}
-      _ -> {state, trigger(state)}
-    end
+  def handle(state, {:mouse, _, mx, _, @mouse_down}) do
+    %{count: count, map: map, selected: selected} = state
+
+    list = for i <- 0..(count - 1), do: {i, String.length("#{map[i]}")}
+
+    list =
+      for {i, l} <- list, reduce: [] do
+        [] -> [{i, 0, l}]
+        [{_, _, e} | _] = list -> [{i, e + 1, e + 1 + l} | list]
+      end
+
+    Enum.find_value(list, {state, nil}, fn {i, s, e} ->
+      case mx >= s && mx < e do
+        false -> false
+        true -> trigger(%{state | selected: i}, selected)
+      end
+    end)
   end
 
   def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
@@ -162,6 +174,13 @@ defmodule Terminal.Radio do
       end
 
     canvas
+  end
+
+  defp trigger(state, selected) do
+    case state.selected do
+      ^selected -> {state, nil}
+      _ -> {state, trigger(state)}
+    end
   end
 
   defp trigger(%{selected: selected, map: map, on_change: on_change}) do

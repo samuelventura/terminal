@@ -85,10 +85,66 @@ defmodule Terminal.Panel do
 
   def handle(%{focus: nil} = state, {:key, _, _}), do: {state, nil}
 
-  def handle(%{focus: focus, root: root} = state, {:key, _, _} = event) do
+  def handle(%{focus: focus} = state, {:key, _, _} = event) do
     mote = get_child(state, focus)
     {mote, event} = mote_handle(mote, event)
+    child_event(state, mote, event)
+  end
 
+  def handle(%{index: index, children: children, focus: focus} = state, {:mouse, s, mx, my, a}) do
+    Enum.find_value(index, {state, nil}, fn id ->
+      mote = Map.get(children, id)
+      focusable = mote_focusable(mote)
+      bounds = mote_bounds(mote)
+      delta = in_bounds(bounds, mx, my)
+
+      case {focusable, delta, focus} do
+        {false, _, _} ->
+          false
+
+        {_, false, _} ->
+          false
+
+        {_, {dx, dy}, ^id} ->
+          event = {:mouse, s, dx, dy, a}
+          {mote, event} = mote_handle(mote, event)
+          child_event(state, mote, event)
+
+        {_, {dx, dy}, _} ->
+          state = unfocus(state)
+          state = %{state | focus: id}
+          mote = mote_focused(mote, true, :next)
+          event = {:mouse, s, dx, dy, a}
+          {mote, event} = mote_handle(mote, event)
+          child_event(state, mote, event)
+      end
+    end)
+  end
+
+  def handle(state, _event), do: {state, nil}
+
+  def render(%{visible: false}, canvas), do: canvas
+
+  def render(%{index: index, children: children}, canvas) do
+    for id <- Enum.reverse(index), reduce: canvas do
+      canvas ->
+        mote = Map.get(children, id)
+        bounds = mote_bounds(mote)
+        canvas = Canvas.push(canvas, bounds)
+        canvas = mote_render(mote, canvas)
+        canvas = Canvas.pop(canvas)
+        canvas
+    end
+  end
+
+  def in_bounds({x, y, w, h}, mx, my) do
+    case mx >= x && mx < x + w && my >= y && my < y + h do
+      false -> false
+      true -> {mx - x, my - y}
+    end
+  end
+
+  def child_event(%{focus: focus, root: root} = state, mote, event) do
     case event do
       {:focus, dir} ->
         {first, next} = focus_next(state, focus, dir)
@@ -113,24 +169,11 @@ defmodule Terminal.Panel do
             {Map.put(state, :focus, next), nil}
         end
 
+      nil ->
+        {put_child(state, focus, mote), nil}
+
       _ ->
         {put_child(state, focus, mote), {focus, event}}
-    end
-  end
-
-  def handle(state, _event), do: {state, nil}
-
-  def render(%{visible: false}, canvas), do: canvas
-
-  def render(%{index: index, children: children}, canvas) do
-    for id <- Enum.reverse(index), reduce: canvas do
-      canvas ->
-        mote = Map.get(children, id)
-        bounds = mote_bounds(mote)
-        canvas = Canvas.push(canvas, bounds)
-        canvas = mote_render(mote, canvas)
-        canvas = Canvas.pop(canvas)
-        canvas
     end
   end
 
@@ -242,6 +285,12 @@ defmodule Terminal.Panel do
       _ ->
         state
     end
+  end
+
+  defp unfocus(%{focus: focus} = state) do
+    mote = get_child(state, focus)
+    mote = mote_focused(mote, false, :next)
+    put_child(state, focus, mote)
   end
 
   defp get_child(state, id), do: get_in(state, [:children, id])

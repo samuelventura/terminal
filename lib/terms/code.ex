@@ -197,7 +197,7 @@ defmodule Terminal.Code do
         [s] = String.to_charlist(s)
         [x] = String.to_charlist(x)
         [y] = String.to_charlist(y)
-        {prefix, {:mouse, s - 32, x - 32, y - 32}}
+        {prefix, {:mouse, s - 32, x - 32 - 1, y - 32 - 1}}
 
       nil ->
         nil
@@ -208,8 +208,8 @@ defmodule Terminal.Code do
     case Regex.run(regex, buffer) do
       [prefix, s, x, y] ->
         s = String.to_integer(s)
-        x = String.to_integer(x)
-        y = String.to_integer(y)
+        x = String.to_integer(x) - 1
+        y = String.to_integer(y) - 1
         {prefix, {:mouse, s, x, y, code}}
 
       nil ->

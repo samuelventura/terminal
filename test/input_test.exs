@@ -94,5 +94,9 @@ defmodule InputTest do
 
     assert Input.handle(%{sample | size: {10, 1}, text: "abc", cursor: 1}, {:key, 0, @backspace}) ==
              {%{sample | size: {10, 1}, text: "bc", cursor: 0}, {:text, "bc", "bc"}}
+
+    # retrigger
+    assert Input.handle(%{sample | size: {10, 1}, text: "abc", cursor: 1}, {:key, @alt, "\r"}) ==
+             {%{sample | size: {10, 1}, text: "abc", cursor: 1}, {:text, "abc", "abc"}}
   end
 end

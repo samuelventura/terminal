@@ -81,74 +81,54 @@ defmodule Terminal.Select do
     check(state)
   end
 
+  def handle(%{items: []} = state, {:key, _, _}), do: {state, nil}
+  def handle(%{items: []} = state, {:mouse, _, _}), do: {state, nil}
+
   def handle(state, {:key, _, @arrow_down}) do
     %{count: count, selected: selected} = state
     next = min(selected + 1, count - 1)
     state = %{state | selected: next}
-    state = offset_update(state)
-
-    case state.selected do
-      ^selected -> {state, nil}
-      _ -> {state, trigger(state)}
-    end
+    offset_update(state, selected)
   end
 
   def handle(state, {:key, _, @arrow_up}) do
     %{selected: selected} = state
     next = max(0, selected - 1)
     state = %{state | selected: next}
-    state = offset_update(state)
-
-    case state.selected do
-      ^selected -> {state, nil}
-      _ -> {state, trigger(state)}
-    end
+    offset_update(state, selected)
   end
 
   def handle(state, {:key, _, @page_down}) do
     %{count: count, selected: selected, size: {_, height}} = state
     next = min(selected + height, count - 1)
     state = %{state | selected: next}
-    state = offset_update(state)
-
-    case state.selected do
-      ^selected -> {state, nil}
-      _ -> {state, trigger(state)}
-    end
+    offset_update(state, selected)
   end
 
   def handle(state, {:key, _, @page_up}) do
     %{selected: selected, size: {_, height}} = state
     next = max(0, selected - height)
     state = %{state | selected: next}
-    state = offset_update(state)
-
-    case state.selected do
-      ^selected -> {state, nil}
-      _ -> {state, trigger(state)}
-    end
+    offset_update(state, selected)
   end
 
   def handle(state, {:key, _, @hend}) do
     %{count: count, selected: selected} = state
     state = %{state | selected: count - 1}
-    state = offset_update(state)
-
-    case state.selected do
-      ^selected -> {state, nil}
-      _ -> {state, trigger(state)}
-    end
+    offset_update(state, selected)
   end
 
   def handle(state, {:key, _, @home}) do
     %{selected: selected} = state
     state = %{state | selected: 0}
-    state = offset_update(state)
+    offset_update(state, selected)
+  end
 
-    case state.selected do
-      ^selected -> {state, nil}
-      _ -> {state, trigger(state)}
-    end
+  def handle(state, {:mouse, _, _, my, @mouse_down}) do
+    %{count: count, selected: selected, offset: offset} = state
+    next = min(count - 1, my + offset)
+    state = %{state | selected: next}
+    offset_update(state, selected)
   end
 
   def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
@@ -202,6 +182,15 @@ defmodule Terminal.Select do
         item = "#{item}"
         item = String.pad_trailing(item, width)
         Canvas.write(canvas, item)
+    end
+  end
+
+  defp offset_update(state, selected) do
+    state = offset_update(state)
+
+    case state.selected do
+      ^selected -> {state, nil}
+      _ -> {state, trigger(state)}
     end
   end
 

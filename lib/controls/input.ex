@@ -76,6 +76,7 @@ defmodule Terminal.Input do
   def handle(state, {:key, _, "\t"}), do: {state, {:focus, :next}}
   def handle(state, {:key, _, @arrow_down}), do: {state, {:focus, :next}}
   def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, @alt, "\r"}), do: {state, trigger(state)}
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
 
   def handle(%{cursor: cursor} = state, {:key, _, @arrow_left}) do
@@ -147,6 +148,12 @@ defmodule Terminal.Input do
         state = %{state | text: text, cursor: cursor + 1}
         {state, trigger(state)}
     end
+  end
+
+  def handle(%{text: text} = state, {:mouse, _, mx, _, @mouse_down}) do
+    cursor = min(mx, String.length(text))
+    state = %{state | cursor: cursor}
+    {state, nil}
   end
 
   def handle(state, _event), do: {state, nil}

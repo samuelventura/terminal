@@ -42,6 +42,8 @@ Process.exit pid, :kill
 ## Future
 
 - Mouse
+- Mouse wheel
+- Drag and drop
 - Selection
 - Clipboard
 - Modals

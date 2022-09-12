@@ -60,6 +60,10 @@ defmodule Terminal.Button do
   def handle(state, {:key, _, @arrow_right}), do: {state, {:focus, :next}}
   def handle(state, {:key, _, @arrow_left}), do: {state, {:focus, :prev}}
   def handle(%{on_click: on_click} = state, {:key, _, "\r"}), do: {state, on_click.()}
+
+  def handle(%{on_click: on_click} = state, {:mouse, _, _, _, @mouse_down}),
+    do: {state, on_click.()}
+
   def handle(state, _event), do: {state, nil}
 
   def render(%{visible: false}, canvas), do: canvas

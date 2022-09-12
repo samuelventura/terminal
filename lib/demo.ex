@@ -20,42 +20,47 @@ defmodule Terminal.Demo do
       if name == "Invalid", do: set_index.(-1)
     end
 
-    tab_origin = {13, 2}
-    tab_size = {40, 8}
-
     markup :main, Panel, size: size do
       markup(:label, Label, text: "Terminal UIs with Reactish API - Demo")
 
-      markup(:list_frame, Frame,
-        origin: {0, 1},
-        size: {12, 6},
-        text: "Demos"
-      )
+      # both in same panel to gain focus on border click
+      markup :select, Panel, origin: {0, 1}, size: {12, 6} do
+        markup(:frame, Frame,
+          size: {12, 6},
+          text: "Demos"
+        )
 
-      markup(:select, Select,
-        origin: {1, 2},
-        size: {10, 4},
-        selected: index,
-        on_change: on_change,
-        items: [
-          "Color",
-          "Timer",
-          "Findex",
-          "Effects",
-          "Counter",
-          "Network",
-          "Password",
-          "Invalid"
-        ]
-      )
+        markup(:select, Select,
+          origin: {1, 1},
+          size: {10, 4},
+          selected: index,
+          on_change: on_change,
+          items: [
+            "Color",
+            "Timer",
+            "Input",
+            "Radio",
+            "Findex",
+            "Select",
+            "Effects",
+            "Counter",
+            "Network",
+            "Password",
+            "Invalid"
+          ]
+        )
+      end
 
-      markup(:tab_frame, Frame,
-        origin: {12, 1},
-        size: {42, 10},
-        text: name
-      )
+      # both in same panel to gain focus on border click
+      markup :tab, Panel, origin: {12, 1}, size: {42, 10} do
+        markup(:frame, Frame,
+          origin: {0, 0},
+          size: {42, 10},
+          text: name
+        )
 
-      markup(index, &tabs/2, tab: index, origin: tab_origin, size: tab_size)
+        markup(index, &tabs/2, tab: index, origin: {1, 1}, size: {40, 8})
+      end
     end
   end
 
@@ -64,11 +69,14 @@ defmodule Terminal.Demo do
       -1 -> markup(:invalid, Panel, [])
       0 -> markup(:color, &color/2, origin: origin, size: size)
       1 -> markup(:timer, &timer/2, origin: origin, size: size)
-      2 -> markup(:findex, &findex/2, origin: origin, size: size)
-      3 -> markup(:effects, &effects/2, origin: origin, size: size)
-      4 -> markup(:counter, &counter/2, origin: origin, size: size)
-      5 -> markup(:network, &network/2, origin: origin, size: size)
-      6 -> markup(:password, &password/2, origin: origin, size: size)
+      2 -> markup(:input, &input/2, origin: origin, size: size)
+      3 -> markup(:radio, &radio/2, origin: origin, size: size)
+      4 -> markup(:findex, &findex/2, origin: origin, size: size)
+      5 -> markup(:select, &select/2, origin: origin, size: size)
+      6 -> markup(:effects, &effects/2, origin: origin, size: size)
+      7 -> markup(:counter, &counter/2, origin: origin, size: size)
+      8 -> markup(:network, &network/2, origin: origin, size: size)
+      9 -> markup(:password, &password/2, origin: origin, size: size)
     end
   end
 
@@ -164,12 +172,46 @@ defmodule Terminal.Demo do
     end
   end
 
+  def input(react, %{origin: origin, size: {w, _} = size}) do
+    {text1, set_text1} = use_state(react, :text1, "sample1")
+    {text2, set_text2} = use_state(react, :text2, "sample2")
+
+    on_change1 = fn text ->
+      log("Text1 #{text}")
+      set_text1.(text)
+    end
+
+    on_change2 = fn text ->
+      log("Text2 #{text}")
+      set_text2.(text)
+    end
+
+    markup :main, Panel, origin: origin, size: size do
+      markup(1, Input, on_change: on_change1, origin: {0, 0}, size: {w, 1}, text: text1)
+      markup(2, Input, on_change: on_change2, origin: {0, 1}, size: {w, 1}, text: text2)
+    end
+  end
+
+  def radio(_react, %{origin: origin, size: {w, _} = size}) do
+    markup :main, Panel, origin: origin, size: size do
+      markup(1, Radio, origin: {0, 0}, size: {w, 1}, items: [1, 2, 3, 4, 5])
+      markup(2, Radio, origin: {0, 1}, size: {w, 1}, items: [1, 2, 3, 4, 5])
+    end
+  end
+
   def findex(_react, %{origin: origin, size: size}) do
     markup :main, Panel, origin: origin, size: size do
-      markup(:b1, Button, origin: {0, 1}, text: "B1", findex: 1)
-      markup(:b4, Button, origin: {0, 2}, text: "B4", findex: 4)
-      markup(:b2, Button, origin: {0, 3}, text: "B2", findex: 2)
-      markup(:b3, Button, origin: {0, 4}, text: "B3", findex: 3)
+      markup(1, Button, origin: {0, 0}, text: "B1", findex: 1)
+      markup(4, Button, origin: {0, 1}, text: "B4", findex: 4)
+      markup(2, Button, origin: {0, 2}, text: "B2", findex: 2)
+      markup(3, Button, origin: {0, 3}, text: "B3", findex: 3)
+    end
+  end
+
+  def select(_react, %{origin: origin, size: size}) do
+    markup :main, Panel, origin: origin, size: size do
+      markup(1, Select, origin: {0, 0}, size: {2, 2}, items: [1, 2, 3, 4])
+      markup(2, Select, origin: {4, 0}, size: {2, 6}, items: [1, 2, 3, 4])
     end
   end
 
