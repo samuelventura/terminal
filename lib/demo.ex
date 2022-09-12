@@ -37,7 +37,16 @@ defmodule Terminal.Demo do
         size: {10, 4},
         selected: index,
         on_change: on_change,
-        items: ["Color", "Timer", "Effects", "Counter", "Network", "Password", "Invalid"]
+        items: [
+          "Color",
+          "Timer",
+          "Findex",
+          "Effects",
+          "Counter",
+          "Network",
+          "Password",
+          "Invalid"
+        ]
       )
 
       markup(:tab_frame, Frame,
@@ -55,10 +64,11 @@ defmodule Terminal.Demo do
       -1 -> markup(:invalid, Panel, [])
       0 -> markup(:color, &color/2, origin: origin, size: size)
       1 -> markup(:timer, &timer/2, origin: origin, size: size)
-      2 -> markup(:effects, &effects/2, origin: origin, size: size)
-      3 -> markup(:counter, &counter/2, origin: origin, size: size)
-      4 -> markup(:network, &network/2, origin: origin, size: size)
-      5 -> markup(:password, &password/2, origin: origin, size: size)
+      2 -> markup(:findex, &findex/2, origin: origin, size: size)
+      3 -> markup(:effects, &effects/2, origin: origin, size: size)
+      4 -> markup(:counter, &counter/2, origin: origin, size: size)
+      5 -> markup(:network, &network/2, origin: origin, size: size)
+      6 -> markup(:password, &password/2, origin: origin, size: size)
     end
   end
 
@@ -151,6 +161,15 @@ defmodule Terminal.Demo do
         text: "Reset",
         on_click: on_reset
       )
+    end
+  end
+
+  def findex(_react, %{origin: origin, size: size}) do
+    markup :main, Panel, origin: origin, size: size do
+      markup(:b1, Button, origin: {0, 1}, text: "B1", findex: 1)
+      markup(:b4, Button, origin: {0, 2}, text: "B4", findex: 4)
+      markup(:b2, Button, origin: {0, 3}, text: "B2", findex: 2)
+      markup(:b3, Button, origin: {0, 4}, text: "B3", findex: 3)
     end
   end
 
