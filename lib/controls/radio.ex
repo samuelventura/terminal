@@ -93,6 +93,14 @@ defmodule Terminal.Radio do
     trigger(state, selected)
   end
 
+  def handle(state, {:mouse, @wheel_up, _, _, _}) do
+    handle(state, {:key, nil, @arrow_left})
+  end
+
+  def handle(state, {:mouse, @wheel_down, _, _, _}) do
+    handle(state, {:key, nil, @arrow_right})
+  end
+
   def handle(state, {:mouse, _, mx, _, @mouse_down}) do
     %{count: count, map: map, selected: selected} = state
 

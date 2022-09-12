@@ -124,6 +124,14 @@ defmodule Terminal.Select do
     offset_update(state, selected)
   end
 
+  def handle(state, {:mouse, @wheel_up, _, _, @mouse_down}) do
+    handle(state, {:key, nil, @arrow_up})
+  end
+
+  def handle(state, {:mouse, @wheel_down, _, _, @mouse_down}) do
+    handle(state, {:key, nil, @arrow_down})
+  end
+
   def handle(state, {:mouse, _, _, my, @mouse_down}) do
     %{count: count, selected: selected, offset: offset} = state
     next = min(count - 1, my + offset)

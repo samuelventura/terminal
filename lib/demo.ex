@@ -9,7 +9,7 @@ defmodule Terminal.Demo do
 
   def main(react, %{size: size}) do
     {index, set_index} = use_state(react, :index, 0)
-    {name, set_name} = use_state(react, :name, "Color")
+    {name, set_name} = use_state(react, :name, "Colors")
 
     on_change = fn index, name ->
       log("Demo #{index} #{name}")
@@ -24,24 +24,21 @@ defmodule Terminal.Demo do
       markup(:label, Label, text: "Terminal UIs with Reactish API - Demo")
 
       # both in same panel to gain focus on border click
-      markup :select, Panel, origin: {0, 1}, size: {12, 6} do
+      markup :select, Panel, origin: {0, 1}, size: {12, 10} do
         markup(:frame, Frame,
-          size: {12, 6},
+          size: {12, 10},
           text: "Demos"
         )
 
         markup(:select, Select,
           origin: {1, 1},
-          size: {10, 4},
+          size: {10, 8},
           selected: index,
           on_change: on_change,
           items: [
-            "Color",
+            "Colors",
+            "Controls",
             "Timer",
-            "Input",
-            "Radio",
-            "Findex",
-            "Select",
             "Effects",
             "Counter",
             "Network",
@@ -67,20 +64,17 @@ defmodule Terminal.Demo do
   def tabs(_react, %{tab: tab, origin: origin, size: size}) do
     case tab do
       -1 -> markup(:invalid, Panel, [])
-      0 -> markup(:color, &color/2, origin: origin, size: size)
-      1 -> markup(:timer, &timer/2, origin: origin, size: size)
-      2 -> markup(:input, &input/2, origin: origin, size: size)
-      3 -> markup(:radio, &radio/2, origin: origin, size: size)
-      4 -> markup(:findex, &findex/2, origin: origin, size: size)
-      5 -> markup(:select, &select/2, origin: origin, size: size)
-      6 -> markup(:effects, &effects/2, origin: origin, size: size)
-      7 -> markup(:counter, &counter/2, origin: origin, size: size)
-      8 -> markup(:network, &network/2, origin: origin, size: size)
-      9 -> markup(:password, &password/2, origin: origin, size: size)
+      0 -> markup(:colors, &colors/2, origin: origin, size: size)
+      1 -> markup(:controls, &controls/2, origin: origin, size: size)
+      2 -> markup(:timer, &timer/2, origin: origin, size: size)
+      3 -> markup(:effects, &effects/2, origin: origin, size: size)
+      4 -> markup(:counter, &counter/2, origin: origin, size: size)
+      5 -> markup(:network, &network/2, origin: origin, size: size)
+      6 -> markup(:password, &password/2, origin: origin, size: size)
     end
   end
 
-  def color(_react, %{origin: origin, size: size}) do
+  def colors(_react, %{origin: origin, size: size}) do
     markup :main, Panel, origin: origin, size: size do
       for b <- 0..7 do
         for f <- 0..15 do
@@ -92,6 +86,101 @@ defmodule Terminal.Demo do
           )
         end
       end
+    end
+  end
+
+  def controls(react, %{origin: origin, size: {w, _} = size}) do
+    {user, set_user} = use_state(react, :user, "user")
+    {password, set_password} = use_state(react, :password, "abc123")
+    {radio, set_radio} = use_state(react, :radio, 1)
+    {select, set_select} = use_state(react, :select, 2)
+
+    on_user = fn value ->
+      log("User #{value}")
+      set_user.(value)
+    end
+
+    on_password = fn value ->
+      log("Password #{value}")
+      set_password.(value)
+    end
+
+    on_radio = fn index, name ->
+      log("Radio #{index} #{name}")
+      set_radio.(index)
+    end
+
+    on_b1 = fn ->
+      log("Button1")
+      set_radio.(-1)
+    end
+
+    on_b2 = fn ->
+      log("Button2")
+      set_select.(-1)
+    end
+
+    on_b3 = fn ->
+      log("Button3")
+      set_radio.(10)
+    end
+
+    on_b4 = fn ->
+      log("Button4")
+      set_select.(10)
+    end
+
+    on_b5 = fn ->
+      log("Button5")
+      set_select.(2)
+    end
+
+    on_select = fn index, name ->
+      log("Select #{index} #{name}")
+      set_select.(index)
+    end
+
+    markup :main, Panel, origin: origin, size: size do
+      markup(11, Radio,
+        origin: {0, 0},
+        size: {div(w, 2), 1},
+        items: [1, 2, 3, 4, 5],
+        selected: radio,
+        on_change: on_radio
+      )
+
+      markup(:label, Label, origin: {0, 1}, size: {div(w, 2), 1}, text: "Welcome #{user}!")
+
+      markup(21, Input, origin: {0, 2}, size: {div(w, 2), 2}, text: user, on_change: on_user)
+
+      markup(22, Input,
+        password: true,
+        on_change: on_password,
+        origin: {0, 3},
+        size: {div(w, 2), 1},
+        text: password
+      )
+
+      # buttons with unordered findex to test navigation
+      markup(31, Button, origin: {0, 4}, text: "B1", findex: 1, on_click: on_b1)
+      markup(34, Button, origin: {5, 4}, text: "B4", findex: 4, on_click: on_b4)
+      markup(32, Button, origin: {10, 4}, text: "B2", findex: 2, on_click: on_b2)
+      markup(33, Button, origin: {15, 4}, text: "B3", findex: 3, on_click: on_b3)
+      markup(35, Button, origin: {20, 4}, text: "B5", findex: 5, on_click: on_b5)
+      # selects with height mismatching data to test scrolling
+      markup(41, Select,
+        origin: {div(w, 2) + 1, 0},
+        size: {1, 2},
+        items: [1, 2, 3, 4],
+        selected: select,
+        on_change: on_select
+      )
+
+      markup(42, Select,
+        origin: {div(w, 2) + 4, 0},
+        size: {1, 6},
+        items: [1, 2, 3, 4]
+      )
     end
   end
 
@@ -169,49 +258,6 @@ defmodule Terminal.Demo do
         text: "Reset",
         on_click: on_reset
       )
-    end
-  end
-
-  def input(react, %{origin: origin, size: {w, _} = size}) do
-    {text1, set_text1} = use_state(react, :text1, "sample1")
-    {text2, set_text2} = use_state(react, :text2, "sample2")
-
-    on_change1 = fn text ->
-      log("Text1 #{text}")
-      set_text1.(text)
-    end
-
-    on_change2 = fn text ->
-      log("Text2 #{text}")
-      set_text2.(text)
-    end
-
-    markup :main, Panel, origin: origin, size: size do
-      markup(1, Input, on_change: on_change1, origin: {0, 0}, size: {w, 1}, text: text1)
-      markup(2, Input, on_change: on_change2, origin: {0, 1}, size: {w, 1}, text: text2)
-    end
-  end
-
-  def radio(_react, %{origin: origin, size: {w, _} = size}) do
-    markup :main, Panel, origin: origin, size: size do
-      markup(1, Radio, origin: {0, 0}, size: {w, 1}, items: [1, 2, 3, 4, 5])
-      markup(2, Radio, origin: {0, 1}, size: {w, 1}, items: [1, 2, 3, 4, 5])
-    end
-  end
-
-  def findex(_react, %{origin: origin, size: size}) do
-    markup :main, Panel, origin: origin, size: size do
-      markup(1, Button, origin: {0, 0}, text: "B1", findex: 1)
-      markup(4, Button, origin: {0, 1}, text: "B4", findex: 4)
-      markup(2, Button, origin: {0, 2}, text: "B2", findex: 2)
-      markup(3, Button, origin: {0, 3}, text: "B3", findex: 3)
-    end
-  end
-
-  def select(_react, %{origin: origin, size: size}) do
-    markup :main, Panel, origin: origin, size: size do
-      markup(1, Select, origin: {0, 0}, size: {2, 2}, items: [1, 2, 3, 4])
-      markup(2, Select, origin: {4, 0}, size: {2, 6}, items: [1, 2, 3, 4])
     end
   end
 

@@ -150,6 +150,9 @@ defmodule Terminal.Input do
     end
   end
 
+  def handle(state, {:mouse, @wheel_up, _, _, _}), do: {state, nil}
+  def handle(state, {:mouse, @wheel_down, _, _, _}), do: {state, nil}
+
   def handle(%{text: text} = state, {:mouse, _, mx, _, @mouse_down}) do
     cursor = min(mx, String.length(text))
     state = %{state | cursor: cursor}

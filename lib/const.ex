@@ -63,6 +63,9 @@ defmodule Terminal.Const do
       @mouse 500
       @mouse_up @mouse + @up
       @mouse_down @mouse + @down
+
+      @wheel_up 64
+      @wheel_down 65
     end
   end
 end
