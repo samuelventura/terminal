@@ -37,11 +37,10 @@ defmodule Terminal.React do
   def use_state(react, key, initial) do
     keys = State.key(react, key)
     current = State.use_state(react, keys, initial)
+    pid = assert_pid(react)
 
     {current,
      fn value ->
-       pid = State.pid(react)
-
        case self() == pid do
          true ->
            State.set_state(react, keys, value)
@@ -54,6 +53,7 @@ defmodule Terminal.React do
   end
 
   def use_callback(react, key, function) do
+    assert_pid(react)
     keys = State.key(react, key)
     State.use_callback(react, keys, function)
     fn -> State.get_callback(react, keys).() end
@@ -64,6 +64,7 @@ defmodule Terminal.React do
   end
 
   def use_effect(react, key, deps, callback) do
+    assert_pid(react)
     keys = State.key(react, key)
 
     function = fn ->
@@ -78,8 +79,8 @@ defmodule Terminal.React do
   end
 
   def set_interval(react, millis, callback) do
+    pid = assert_pid(react)
     id = State.new_timer(react)
-    pid = self()
 
     {:ok, task} =
       Task.start_link(fn ->
@@ -120,8 +121,8 @@ defmodule Terminal.React do
   end
 
   def set_timeout(react, millis, callback) do
+    pid = assert_pid(react)
     id = State.new_timer(react)
-    pid = self()
 
     {:ok, task} =
       Task.start_link(fn ->
@@ -149,11 +150,7 @@ defmodule Terminal.React do
     end
   end
 
-  def clear_interval(timer) do
-    timer.()
-  end
-
-  def clear_timeout(timer) do
+  def clear_timer(timer) do
     timer.()
   end
 
@@ -162,5 +159,15 @@ defmodule Terminal.React do
     now = DateTime.utc_now()
     now = String.slice("#{now}", 11..22)
     IO.puts("#{now} #{inspect(self())} #{msg}")
+  end
+
+  defp assert_pid(react) do
+    # API restricted to react process
+    pid = self()
+
+    case State.pid(react) do
+      ^pid -> pid
+      pid -> raise "Invalid caller: #{inspect(pid)}"
+    end
   end
 end

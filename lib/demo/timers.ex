@@ -20,7 +20,7 @@ defmodule Terminal.Demo.Timers do
       use_callback(react, :cleanup, fn ->
         if interval != nil do
           log("Cleanup interval...")
-          clear_interval(interval)
+          clear_timer(interval)
           # as expected this excepts when called from a cleanup
           # because the interval state key is gone at that point
           # set_interval.(nil)
@@ -28,7 +28,7 @@ defmodule Terminal.Demo.Timers do
 
         if timeout != nil do
           log("Cleanup timeout...")
-          clear_timeout(timeout)
+          clear_timer(timeout)
         end
       end)
 
@@ -54,7 +54,7 @@ defmodule Terminal.Demo.Timers do
 
     on_stop = fn ->
       log("Stopping interval...")
-      clear_interval(interval)
+      clear_timer(interval)
       set_interval.(nil)
     end
 
@@ -73,7 +73,7 @@ defmodule Terminal.Demo.Timers do
 
     on_cancel = fn ->
       log("Canceling timeout...")
-      clear_timeout(timeout)
+      clear_timer(timeout)
       set_timeout.(nil)
       set_flag.("Canceled")
     end
