@@ -79,30 +79,81 @@ defmodule Terminal.React do
 
   def set_interval(react, millis, callback) do
     id = State.new_timer(react)
-    stream = Stream.interval(millis)
+    pid = self()
 
-    handler = fn _ ->
-      case State.get_timer(react, id) do
-        nil ->
-          true
+    {:ok, task} =
+      Task.start_link(fn ->
+        receive do
+          :start -> :start
+        end
 
-        _ ->
-          callback.()
-          false
-      end
-    end
+        stream = Stream.interval(millis)
 
-    task = Task.async(fn -> Enum.any?(stream, handler) end)
+        Enum.any?(stream, fn _ ->
+          case State.get_timer(react, id) do
+            nil ->
+              true
+
+            _ ->
+              callback.()
+              false
+          end
+        end)
+
+        # auto remove key from state map
+        State.clear_timer(react, id)
+        Process.unlink(pid)
+      end)
+
     State.set_timer(react, id, task)
+    Process.send(task, :start, [])
 
     fn ->
-      task = State.get_timer(react, id)
-      Task.shutdown(task)
-      State.remove_timer(react, id)
+      # multiple clears allowed
+      task = State.clear_timer(react, id)
+
+      if task != nil do
+        Process.unlink(task)
+        Process.exit(task, :kill)
+      end
+    end
+  end
+
+  def set_timeout(react, millis, callback) do
+    id = State.new_timer(react)
+    pid = self()
+
+    {:ok, task} =
+      Task.start_link(fn ->
+        receive do
+          :start -> :start
+        end
+
+        :timer.sleep(millis)
+        task = State.clear_timer(react, id)
+        if task != nil, do: callback.()
+        Process.unlink(pid)
+      end)
+
+    State.set_timer(react, id, task)
+    Process.send(task, :start, [])
+
+    fn ->
+      # multiple clears allowed
+      task = State.clear_timer(react, id)
+
+      if task != nil do
+        Process.unlink(task)
+        Process.exit(task, :kill)
+      end
     end
   end
 
   def clear_interval(timer) do
+    timer.()
+  end
+
+  def clear_timeout(timer) do
     timer.()
   end
 

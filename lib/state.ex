@@ -226,21 +226,20 @@ defmodule Terminal.State do
     Agent.get(agent, fn map -> map.timers[id] end)
   end
 
-  def set_timer(agent, id, payload) do
+  def set_timer(agent, id, timer) do
     :ok =
       Agent.update(agent, fn map ->
         Map.update!(map, :timers, fn timers ->
-          Map.update!(timers, id, fn _ -> payload end)
+          Map.update!(timers, id, fn _ -> timer end)
         end)
       end)
   end
 
-  def remove_timer(agent, id) do
-    :ok =
-      Agent.update(agent, fn map ->
-        Map.update!(map, :timers, fn timers ->
-          Map.delete(timers, id)
-        end)
+  def clear_timer(agent, id) do
+    Agent.get_and_update(agent, fn map ->
+      Map.get_and_update!(map, :timers, fn timers ->
+        Map.pop(timers, id)
       end)
+    end)
   end
 end

@@ -40,6 +40,7 @@ Process.exit pid, :kill
 - Effects and cleanups are executed post render in same render process.
 - Mouse wheel may focus but not trigger constrol actions.
 - Select and Radio items can be any datatype implementing String.Chars.
+- Exceptions in timeout/interval handlers should kill the application.
 
 ## Future
 

@@ -3,7 +3,7 @@ defmodule Terminal.Demo do
   import Terminal.Demo.Colors
   import Terminal.Demo.Controls
   import Terminal.Demo.Counter
-  import Terminal.Demo.Timer
+  import Terminal.Demo.Timers
   import Terminal.Demo.Effects
   import Terminal.Demo.Unsafe
 
@@ -42,7 +42,7 @@ defmodule Terminal.Demo do
             "Colors",
             "Controls",
             "Counter",
-            "Timer",
+            "Timers",
             "Effects",
             "Unsafe"
           ]
@@ -67,7 +67,7 @@ defmodule Terminal.Demo do
       0 -> markup(:colors, &colors/2, origin: origin, size: size)
       1 -> markup(:controls, &controls/2, origin: origin, size: size)
       2 -> markup(:counter, &counter/2, origin: origin, size: size)
-      3 -> markup(:timer, &timer/2, origin: origin, size: size)
+      3 -> markup(:timers, &timers/2, origin: origin, size: size)
       4 -> markup(:effects, &effects/2, origin: origin, size: size)
       5 -> markup(:unsafe, &unsafe/2, origin: origin, size: size)
     end
