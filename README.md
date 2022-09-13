@@ -50,6 +50,7 @@ Process.exit pid, :kill
 - Selection
 - Clipboard
 - Modals
+- Checkbox
 - TextArea
 - Input scrolling
 - Input validation

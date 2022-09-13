@@ -1,4 +1,4 @@
-defmodule Terminal.Window do
+defmodule Terminal.Control do
   @callback init(opts :: any()) :: state :: any()
   @callback handle(state :: any(), event :: any()) :: {state :: any(), cmd :: any()}
   @callback render(state :: any(), canvas :: any()) :: canvas :: any()

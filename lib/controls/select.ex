@@ -1,5 +1,5 @@
 defmodule Terminal.Select do
-  @behaviour Terminal.Window
+  @behaviour Terminal.Control
   use Terminal.Const
   alias Terminal.Check
   alias Terminal.Select

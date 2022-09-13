@@ -13,7 +13,7 @@ alias Terminal.App
 alias Terminal.React
 alias Terminal.State
 
-alias Terminal.Window
+alias Terminal.Control
 alias Terminal.Theme
 alias Terminal.Check
 

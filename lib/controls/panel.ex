@@ -1,5 +1,5 @@
 defmodule Terminal.Panel do
-  @behaviour Terminal.Window
+  @behaviour Terminal.Control
   alias Terminal.Canvas
 
   def init(opts) do
@@ -69,18 +69,13 @@ defmodule Terminal.Panel do
       index: index
     } = state
 
-    count =
-      for id <- index, reduce: 0 do
-        count ->
-          mote = Map.get(children, id)
+    found =
+      Enum.find_value(index, false, fn id ->
+        mote = Map.get(children, id)
+        mote_focusable(mote)
+      end)
 
-          case mote_focusable(mote) do
-            false -> count
-            true -> count + 1
-          end
-      end
-
-    findex >= 0 && visible && enabled && count > 0
+    findex >= 0 && visible && enabled && found
   end
 
   def handle(%{focus: nil} = state, {:key, _, _}), do: {state, nil}

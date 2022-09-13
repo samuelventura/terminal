@@ -1,5 +1,5 @@
 defmodule Terminal.Frame do
-  @behaviour Terminal.Window
+  @behaviour Terminal.Control
   alias Terminal.Check
   alias Terminal.Canvas
   alias Terminal.Theme
