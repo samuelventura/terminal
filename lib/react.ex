@@ -2,6 +2,20 @@ defmodule Terminal.React do
   alias Terminal.State
   alias Terminal.Parser
 
+  defmacro __using__(_opts) do
+    quote do
+      use Terminal.Const
+      import Terminal.React
+      alias Terminal.Panel
+      alias Terminal.Label
+      alias Terminal.Button
+      alias Terminal.Input
+      alias Terminal.Frame
+      alias Terminal.Select
+      alias Terminal.Radio
+    end
+  end
+
   defmacro markup(key, modfun, props) do
     quote do
       {unquote(key), unquote(modfun), unquote(props), []}
@@ -90,5 +104,12 @@ defmodule Terminal.React do
 
   def clear_interval(timer) do
     timer.()
+  end
+
+  def log(msg) do
+    # 2022-09-10 20:02:49.684244Z
+    now = DateTime.utc_now()
+    now = String.slice("#{now}", 11..22)
+    IO.puts("#{now} #{inspect(self())} #{msg}")
   end
 end

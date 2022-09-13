@@ -39,6 +39,7 @@ Process.exit pid, :kill
 - The reason for use_effect (instead of direct execution from event handlers) is its cleanup mechanism.
 - Effects and cleanups are executed post render in same render process.
 - Mouse wheel may focus but not trigger constrol actions.
+- Select and Radio items can be any datatype implementing String.Chars.
 
 ## Future
 
