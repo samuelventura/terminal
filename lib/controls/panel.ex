@@ -69,13 +69,11 @@ defmodule Terminal.Panel do
       index: index
     } = state
 
-    found =
+    findex >= 0 && visible && enabled &&
       Enum.find_value(index, false, fn id ->
         mote = Map.get(children, id)
         mote_focusable(mote)
       end)
-
-    findex >= 0 && visible && enabled && found
   end
 
   def handle(%{focus: nil} = state, {:key, _, _}), do: {state, nil}

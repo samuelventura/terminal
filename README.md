@@ -41,6 +41,7 @@ Process.exit pid, :kill
 - Mouse wheel may focus but not trigger constrol actions.
 - Select and Radio items can be any datatype implementing String.Chars.
 - Exceptions in timeout/interval handlers should kill the application.
+- Cleanups should be idempotent.
 
 ## Future
 

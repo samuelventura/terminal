@@ -82,35 +82,28 @@ defmodule Terminal.React do
     pid = assert_pid(react)
     id = State.new_timer(react)
 
+    callfunc = fn ->
+      task = State.get_timer(react, id)
+      if task != nil, do: callback.()
+    end
+
     {:ok, task} =
       Task.start_link(fn ->
-        receive do
-          :start -> :start
-        end
-
         stream = Stream.interval(millis)
 
         Enum.any?(stream, fn _ ->
-          case State.get_timer(react, id) do
-            nil ->
-              true
-
-            _ ->
-              callback.()
-              false
-          end
+          send(pid, {:cmd, :callback, callfunc})
+          State.get_timer(react, id) == nil
         end)
 
-        # auto remove key from state map
-        State.clear_timer(react, id)
         Process.unlink(pid)
       end)
 
     State.set_timer(react, id, task)
-    Process.send(task, :start, [])
 
     fn ->
-      # multiple clears allowed
+      # unlink requires react process
+      assert_pid(react)
       task = State.clear_timer(react, id)
 
       if task != nil do
@@ -124,23 +117,23 @@ defmodule Terminal.React do
     pid = assert_pid(react)
     id = State.new_timer(react)
 
+    callfunc = fn ->
+      task = State.clear_timer(react, id)
+      if task != nil, do: callback.()
+    end
+
     {:ok, task} =
       Task.start_link(fn ->
-        receive do
-          :start -> :start
-        end
-
         :timer.sleep(millis)
-        task = State.clear_timer(react, id)
-        if task != nil, do: callback.()
+        send(pid, {:cmd, :callback, callfunc})
         Process.unlink(pid)
       end)
 
     State.set_timer(react, id, task)
-    Process.send(task, :start, [])
 
     fn ->
-      # multiple clears allowed
+      # unlink requires react process
+      assert_pid(react)
       task = State.clear_timer(react, id)
 
       if task != nil do
