@@ -8,28 +8,27 @@ defmodule Terminal.Input do
 
   def init(opts \\ []) do
     text = Keyword.get(opts, :text, "")
+    origin = Keyword.get(opts, :origin, {0, 0})
     size = Keyword.get(opts, :size, {String.length(text), 1})
     visible = Keyword.get(opts, :visible, true)
-    focused = Keyword.get(opts, :focused, false)
     enabled = Keyword.get(opts, :enabled, true)
-    theme = Keyword.get(opts, :theme, :default)
-    cursor = Keyword.get(opts, :cursor, String.length(text))
-    origin = Keyword.get(opts, :origin, {0, 0})
     findex = Keyword.get(opts, :findex, 0)
+    theme = Keyword.get(opts, :theme, :default)
     password = Keyword.get(opts, :password, false)
+    cursor = Keyword.get(opts, :cursor, String.length(text))
     on_change = Keyword.get(opts, :on_change, &Input.nop/1)
 
     state = %{
-      focused: focused,
-      cursor: cursor,
-      findex: findex,
+      focused: false,
+      origin: origin,
+      size: size,
       visible: visible,
       enabled: enabled,
-      password: password,
+      findex: findex,
       theme: theme,
+      password: password,
       text: text,
-      size: size,
-      origin: origin,
+      cursor: cursor,
       on_change: on_change
     }
 
@@ -43,9 +42,9 @@ defmodule Terminal.Input do
   def focusable(%{visible: false}), do: false
   def focusable(%{on_change: nil}), do: false
   def focusable(%{findex: findex}), do: findex >= 0
-  def refocus(state, _), do: state
   def focused(%{focused: focused}), do: focused
   def focused(state, focused), do: %{state | focused: focused}
+  def refocus(state, _), do: state
   def findex(%{findex: findex}), do: findex
   def children(_), do: []
   def children(state, _), do: state
@@ -224,17 +223,17 @@ defmodule Terminal.Input do
   end
 
   defp check(state) do
+    Check.assert_boolean(:focused, state.focused)
     Check.assert_point_2d(:origin, state.origin)
     Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:enabled, state.enabled)
-    Check.assert_boolean(:focused, state.focused)
-    Check.assert_boolean(:password, state.password)
+    Check.assert_gte(:findex, state.findex, -1)
     Check.assert_atom(:theme, state.theme)
-    Check.assert_integer(:findex, state.findex)
+    Check.assert_boolean(:password, state.password)
     Check.assert_string(:text, state.text)
+    Check.assert_gte(:cursor, state.cursor, 0)
     Check.assert_function(:on_change, state.on_change, 1)
-    Check.assert_integer(:cursor, state.cursor)
     state
   end
 end

@@ -9,17 +9,17 @@ defmodule ButtonTest do
     # defaults
     assert initial == %{
              focused: false,
+             origin: {0, 0},
+             size: {2, 1},
              visible: true,
              enabled: true,
              findex: 0,
              theme: :default,
-             size: {2, 1},
              text: "",
-             origin: {0, 0},
              on_click: &Button.nop/0
            }
 
-    # panel getters/setters
+    # control getters/setters
     assert Button.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
     assert Button.focusable(%{enabled: false}) == false
     assert Button.focusable(%{visible: false}) == false
@@ -28,10 +28,10 @@ defmodule ButtonTest do
     assert Button.focused(%{focused: false}) == false
     assert Button.focused(%{focused: true}) == true
     assert Button.focused(initial, true) == %{initial | focused: true}
+    assert Button.refocus(:state, :dir) == :state
     assert Button.findex(%{findex: 0}) == 0
     assert Button.children(:state) == []
     assert Button.children(:state, []) == :state
-    assert Button.refocus(:state, :dir) == :state
 
     # react update
     on_click = fn -> :click end

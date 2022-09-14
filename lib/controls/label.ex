@@ -15,10 +15,10 @@ defmodule Terminal.Label do
     fore = Keyword.get(opts, :fore, theme.fore_readonly)
 
     state = %{
-      text: text,
-      size: size,
       origin: origin,
+      size: size,
       visible: visible,
+      text: text,
       back: back,
       fore: fore
     }
@@ -27,10 +27,10 @@ defmodule Terminal.Label do
   end
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
-  def refocus(state, _), do: state
+  def focusable(_), do: false
   def focused(state, _), do: state
   def focused(_), do: false
-  def focusable(_), do: false
+  def refocus(state, _), do: state
   def findex(_), do: -1
   def children(_), do: []
   def children(state, _), do: state
@@ -61,12 +61,12 @@ defmodule Terminal.Label do
   end
 
   defp check(state) do
-    Check.assert_string(:text, state.text)
     Check.assert_point_2d(:origin, state.origin)
     Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
-    Check.assert_in_range(:fore, state.fore, 0..15)
+    Check.assert_string(:text, state.text)
     Check.assert_in_range(:back, state.back, 0..7)
+    Check.assert_in_range(:fore, state.fore, 0..15)
     state
   end
 end

@@ -7,33 +7,32 @@ defmodule Terminal.Select do
   alias Terminal.Theme
 
   def init(opts \\ []) do
-    items = Keyword.get(opts, :items, [])
+    origin = Keyword.get(opts, :origin, {0, 0})
     size = Keyword.get(opts, :size, {0, 0})
     visible = Keyword.get(opts, :visible, true)
-    focused = Keyword.get(opts, :focused, false)
     enabled = Keyword.get(opts, :enabled, true)
-    origin = Keyword.get(opts, :origin, {0, 0})
-    selected = Keyword.get(opts, :selected, 0)
-    theme = Keyword.get(opts, :theme, :default)
-    offset = Keyword.get(opts, :offset, 0)
     findex = Keyword.get(opts, :findex, 0)
+    theme = Keyword.get(opts, :theme, :default)
+    items = Keyword.get(opts, :items, [])
+    selected = Keyword.get(opts, :selected, 0)
+    offset = Keyword.get(opts, :offset, 0)
     on_change = Keyword.get(opts, :on_change, &Select.nop/2)
 
     {count, map} = to_map(items)
 
     state = %{
-      focused: focused,
+      focused: false,
+      origin: origin,
+      size: size,
+      visible: visible,
+      enabled: enabled,
+      theme: theme,
+      findex: findex,
+      items: items,
+      selected: selected,
       count: count,
       map: map,
-      items: items,
       offset: offset,
-      size: size,
-      theme: theme,
-      visible: visible,
-      findex: findex,
-      enabled: enabled,
-      origin: origin,
-      selected: selected,
       on_change: on_change
     }
 
@@ -235,17 +234,18 @@ defmodule Terminal.Select do
   end
 
   defp check(state) do
-    Check.assert_map(:map, state.map)
-    Check.assert_integer(:count, state.count)
+    Check.assert_boolean(:focused, state.focused)
     Check.assert_point_2d(:origin, state.origin)
     Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:enabled, state.enabled)
-    Check.assert_boolean(:focused, state.focused)
+    Check.assert_gte(:findex, state.findex, -1)
     Check.assert_atom(:theme, state.theme)
-    Check.assert_integer(:findex, state.findex)
-    Check.assert_integer(:offset, state.offset)
+    Check.assert_list(:items, state.items)
     Check.assert_integer(:selected, state.selected)
+    Check.assert_map(:map, state.map)
+    Check.assert_gte(:count, state.count, 0)
+    Check.assert_gte(:offset, state.offset, 0)
     Check.assert_function(:on_change, state.on_change, 2)
     state
   end

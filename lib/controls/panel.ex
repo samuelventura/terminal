@@ -1,31 +1,37 @@
 defmodule Terminal.Panel do
   @behaviour Terminal.Control
+  alias Terminal.Check
   alias Terminal.Canvas
 
-  def init(opts) do
-    theme = Keyword.get(opts, :theme, :default)
+  def init(opts \\ []) do
     origin = Keyword.get(opts, :origin, {0, 0})
     size = Keyword.get(opts, :size, {0, 0})
-    enabled = Keyword.get(opts, :enabled, true)
     visible = Keyword.get(opts, :visible, true)
-    focused = Keyword.get(opts, :focused, false)
+    enabled = Keyword.get(opts, :enabled, true)
     findex = Keyword.get(opts, :findex, 0)
     root = Keyword.get(opts, :root, false)
 
-    %{
-      root: root,
-      index: [],
-      children: %{},
-      focus: nil,
-      focused: focused,
-      theme: theme,
+    state = %{
+      focused: root,
       origin: origin,
+      size: size,
       visible: visible,
       enabled: enabled,
       findex: findex,
-      size: size
+      root: root,
+      index: [],
+      children: %{},
+      focus: nil
     }
+
+    check(state)
   end
+
+  def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
+  def focused(%{focused: focused}), do: focused
+  def focused(state, focused), do: Map.put(state, :focused, focused)
+  def refocus(state, dir), do: focus_update(state, dir)
+  def findex(%{findex: findex}), do: findex
 
   def children(%{index: index, children: children}) do
     for id <- index, reduce: [] do
@@ -50,30 +56,19 @@ defmodule Terminal.Panel do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:root, :children, :focus, :index, :focused])
     state = Map.merge(state, props)
-    focus_update(state)
+    state = focus_update(state)
+    check(state)
   end
 
-  def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
-  def bounds(state, {x, y, w, h}), do: state |> Map.put(:size, {w, h}) |> Map.put(:origin, {x, y})
-  def focused(state, focused), do: Map.put(state, :focused, focused)
-  def focused(%{focused: focused}), do: focused
-  def findex(%{findex: findex}), do: findex
-  def refocus(state, dir), do: focus_update(state, dir)
+  def focusable(%{enabled: false}), do: false
+  def focusable(%{visible: false}), do: false
+  def focusable(%{findex: findex}), do: findex >= 0
 
-  def focusable(state) do
-    %{
-      children: children,
-      enabled: enabled,
-      visible: visible,
-      findex: findex,
-      index: index
-    } = state
-
-    findex >= 0 && visible && enabled &&
-      Enum.find_value(index, false, fn id ->
-        mote = Map.get(children, id)
-        mote_focusable(mote)
-      end)
+  def focusable(%{children: children, index: index}) do
+    Enum.find_value(index, false, fn id ->
+      mote = Map.get(children, id)
+      mote_focusable(mote)
+    end)
   end
 
   def handle(%{focus: nil} = state, {:key, _, _}), do: {state, nil}
@@ -305,5 +300,18 @@ defmodule Terminal.Panel do
   defp mote_handle({module, state}, event) do
     {state, event} = module.handle(state, event)
     {{module, state}, event}
+  end
+
+  defp check(state) do
+    Check.assert_boolean(:focused, state.focused)
+    Check.assert_point_2d(:origin, state.origin)
+    Check.assert_point_2d(:size, state.size)
+    Check.assert_boolean(:visible, state.visible)
+    Check.assert_boolean(:enabled, state.enabled)
+    Check.assert_gte(:findex, state.findex, -1)
+    Check.assert_boolean(:root, state.root)
+    Check.assert_map(:children, state.children)
+    Check.assert_list(:index, state.index)
+    state
   end
 end

@@ -46,4 +46,9 @@ defmodule Terminal.Check do
       _ -> raise("#{name} not {integer, integer}: #{inspect(value)}")
     end
   end
+
+  def assert_gte(name, value, limit) do
+    if !is_integer(value), do: raise("#{name} not integer: #{inspect(value)}")
+    if value < limit, do: raise("#{name} not >= #{limit}: #{inspect(value)}")
+  end
 end

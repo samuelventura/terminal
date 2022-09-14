@@ -66,6 +66,7 @@ Process.exit pid, :kill
 - Tab navigation testing
 - Arror up/down navigation
 - List rendering
+- Nil rendering
 - Conditional rendering
 - Use effect execution order
 - Use effect cleanups
@@ -73,3 +74,4 @@ Process.exit pid, :kill
 - Test refocus
 - Test reverse nav
 - Test canvas && diffing
+- Test visible propagation

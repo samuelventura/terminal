@@ -8,21 +8,21 @@ defmodule RadioTest do
 
     # defaults
     assert initial == %{
-             count: 0,
-             map: %{},
-             selected: 0,
              focused: false,
+             origin: {0, 0},
+             size: {0, 0},
              visible: true,
              enabled: true,
              findex: 0,
              theme: :default,
-             size: {0, 0},
              items: [],
-             origin: {0, 0},
+             selected: 0,
+             count: 0,
+             map: %{},
              on_change: &Radio.nop/2
            }
 
-    # panel getters/setters
+    # control getters/setters
     assert Radio.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
     assert Radio.focusable(%{initial | enabled: false}) == false
     assert Radio.focusable(%{initial | visible: false}) == false
@@ -31,10 +31,10 @@ defmodule RadioTest do
     assert Radio.focused(%{focused: false}) == false
     assert Radio.focused(%{focused: true}) == true
     assert Radio.focused(initial, true) == %{initial | focused: true}
+    assert Radio.refocus(:state, :dir) == :state
     assert Radio.findex(%{findex: 0}) == 0
     assert Radio.children(:state) == []
     assert Radio.children(:state, []) == :state
-    assert Radio.refocus(:state, :dir) == :state
 
     # react update
     on_change = fn index, value -> "#{index}:#{value}" end

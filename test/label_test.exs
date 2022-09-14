@@ -11,24 +11,24 @@ defmodule LabelTest do
 
     # defaults
     assert initial == %{
-             text: "",
              origin: {0, 0},
              size: {0, 1},
              visible: true,
+             text: "",
              back: theme.back_readonly,
              fore: theme.fore_readonly
            }
 
     # panel getter/setters
-    assert Label.bounds(%{origin: {1, 2}, size: {3, 4}}) === {1, 2, 3, 4}
-    assert Label.focusable(%{}) === false
-    assert Label.focused(%{}) === false
-    assert Label.focused(%{}, false) === %{}
-    assert Label.focused(%{}, true) === %{}
-    assert Label.findex(%{findex: 0}) === -1
+    assert Label.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
+    assert Label.focusable(%{}) == false
+    assert Label.focused(%{}) == false
+    assert Label.focused(%{}, false) == %{}
+    assert Label.focused(%{}, true) == %{}
+    assert Label.refocus(:state, :dir) == :state
+    assert Label.findex(%{findex: 0}) == -1
     assert Label.children(:state) == []
     assert Label.children(:state, []) == :state
-    assert Label.refocus(:state, :dir) == :state
 
     # react update
     assert Label.update(initial, text: "text") == %{initial | text: "text"}
@@ -39,7 +39,7 @@ defmodule LabelTest do
     assert Label.update(initial, fore: @red) == %{initial | fore: @red}
 
     # nops
-    assert Label.handle(%{}, nil) === {%{}, nil}
+    assert Label.handle(%{}, nil) == {%{}, nil}
 
     assert Label.render(%{visible: false}, nil) == nil
   end

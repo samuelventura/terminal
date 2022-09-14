@@ -8,11 +8,12 @@ defmodule Terminal.React do
       import Terminal.React
       alias Terminal.Panel
       alias Terminal.Label
-      alias Terminal.Button
       alias Terminal.Input
       alias Terminal.Frame
-      alias Terminal.Select
       alias Terminal.Radio
+      alias Terminal.Button
+      alias Terminal.Select
+      alias Terminal.Checkbox
     end
   end
 
@@ -122,6 +123,7 @@ defmodule Terminal.React do
       if task != nil, do: callback.()
     end
 
+    # Process.send_after is a cancelable an alternative
     {:ok, task} =
       Task.start_link(fn ->
         :timer.sleep(millis)

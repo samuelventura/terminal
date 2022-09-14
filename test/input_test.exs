@@ -8,20 +8,20 @@ defmodule InputTest do
 
     # defaults
     assert initial == %{
-             text: "",
-             cursor: 0,
              focused: false,
+             origin: {0, 0},
+             size: {0, 1},
              visible: true,
              enabled: true,
-             password: false,
              findex: 0,
              theme: :default,
-             size: {0, 1},
-             origin: {0, 0},
+             password: false,
+             text: "",
+             cursor: 0,
              on_change: &Input.nop/1
            }
 
-    # panel getters/setters
+    # control getters/setters
     assert Input.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
     assert Input.focusable(%{initial | enabled: false}) == false
     assert Input.focusable(%{initial | visible: false}) == false
@@ -30,10 +30,10 @@ defmodule InputTest do
     assert Input.focused(%{focused: false}) == false
     assert Input.focused(%{focused: true}) == true
     assert Input.focused(initial, true) == %{initial | focused: true}
+    assert Input.refocus(:state, :dir) == :state
     assert Input.findex(%{findex: 0}) == 0
     assert Input.children(:state) == []
     assert Input.children(:state, []) == :state
-    assert Input.refocus(:state, :dir) == :state
 
     # react update
     on_change = fn value -> value end

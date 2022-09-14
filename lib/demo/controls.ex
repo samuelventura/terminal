@@ -6,6 +6,7 @@ defmodule Terminal.Demo.Controls do
     {password, set_password} = use_state(react, :password, "abc123")
     {radio, set_radio} = use_state(react, :radio, 1)
     {select, set_select} = use_state(react, :select, 2)
+    {checked, set_checked} = use_state(react, :checked, true)
 
     on_user = fn value ->
       log("User #{value}")
@@ -57,6 +58,11 @@ defmodule Terminal.Demo.Controls do
       set_select.(item)
     end
 
+    on_checked = fn checked ->
+      log("Checked #{checked}")
+      set_checked.(checked)
+    end
+
     markup :main, Panel, origin: origin, size: size do
       # selected index is zero based
       # items can be any datatype implementing String.Chars
@@ -66,6 +72,13 @@ defmodule Terminal.Demo.Controls do
         items: [0, 1, 2, 3, 4],
         selected: radio,
         on_change: on_radio
+      )
+
+      markup(12, Checkbox,
+        origin: {div(w, 2), 0},
+        checked: checked,
+        on_change: on_checked,
+        text: "Toggle"
       )
 
       markup(:title, Label, origin: {0, 1}, size: {div(w, 2), 1}, text: "Welcome #{user}!")

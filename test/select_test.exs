@@ -8,22 +8,22 @@ defmodule SelectTest do
 
     # defaults
     assert initial == %{
-             count: 0,
-             map: %{},
-             offset: 0,
-             selected: -1,
              focused: false,
+             origin: {0, 0},
+             size: {0, 0},
              visible: true,
              enabled: true,
              findex: 0,
              theme: :default,
-             size: {0, 0},
              items: [],
-             origin: {0, 0},
+             selected: -1,
+             count: 0,
+             map: %{},
+             offset: 0,
              on_change: &Select.nop/2
            }
 
-    # panel getters/setters
+    # control getters/setters
     assert Select.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
     assert Select.focusable(%{initial | enabled: false}) == false
     assert Select.focusable(%{initial | visible: false}) == false
@@ -32,10 +32,10 @@ defmodule SelectTest do
     assert Select.focused(%{focused: false}) == false
     assert Select.focused(%{focused: true}) == true
     assert Select.focused(initial, true) == %{initial | focused: true}
+    assert Select.refocus(:state, :dir) == :state
     assert Select.findex(%{findex: 0}) == 0
     assert Select.children(:state) == []
     assert Select.children(:state, []) == :state
-    assert Select.refocus(:state, :dir) == :state
 
     # react update
     on_change = fn index, value -> "#{index}:#{value}" end

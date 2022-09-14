@@ -11,26 +11,26 @@ defmodule FrameTest do
 
     # defaults
     assert initial == %{
-             text: "",
              origin: {0, 0},
              size: {0, 0},
              visible: true,
-             back: theme.back_readonly,
-             fore: theme.fore_readonly,
              bracket: false,
-             style: :single
+             style: :single,
+             text: "",
+             back: theme.back_readonly,
+             fore: theme.fore_readonly
            }
 
-    # panel getter/setters
-    assert Frame.bounds(%{origin: {1, 2}, size: {3, 4}}) === {1, 2, 3, 4}
-    assert Frame.focusable(%{}) === false
-    assert Frame.focused(%{}) === false
-    assert Frame.focused(%{}, false) === %{}
-    assert Frame.focused(%{}, true) === %{}
-    assert Frame.findex(%{findex: 0}) === -1
+    # control getter/setters
+    assert Frame.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
+    assert Frame.focusable(%{}) == false
+    assert Frame.focused(%{}) == false
+    assert Frame.focused(%{}, false) == %{}
+    assert Frame.focused(%{}, true) == %{}
+    assert Frame.refocus(:state, :dir) == :state
+    assert Frame.findex(%{findex: 0}) == -1
     assert Frame.children(:state) == []
     assert Frame.children(:state, []) == :state
-    assert Frame.refocus(:state, :dir) == :state
 
     # react update
     assert Frame.update(initial, text: "text") == %{initial | text: "text"}
@@ -41,7 +41,7 @@ defmodule FrameTest do
     assert Frame.update(initial, fore: @red) == %{initial | fore: @red}
 
     # nops
-    assert Frame.handle(%{}, nil) === {%{}, nil}
+    assert Frame.handle(%{}, nil) == {%{}, nil}
 
     assert Frame.render(%{visible: false}, nil) == nil
   end

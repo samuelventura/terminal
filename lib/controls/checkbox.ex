@@ -1,20 +1,21 @@
-defmodule Terminal.Button do
+defmodule Terminal.Checkbox do
   @behaviour Terminal.Control
   use Terminal.Const
   alias Terminal.Check
-  alias Terminal.Button
+  alias Terminal.Checkbox
   alias Terminal.Canvas
   alias Terminal.Theme
 
   def init(opts \\ []) do
     text = Keyword.get(opts, :text, "")
     origin = Keyword.get(opts, :origin, {0, 0})
-    size = Keyword.get(opts, :size, {String.length(text) + 2, 1})
+    size = Keyword.get(opts, :size, {String.length(text) + 3, 1})
     visible = Keyword.get(opts, :visible, true)
     enabled = Keyword.get(opts, :enabled, true)
     findex = Keyword.get(opts, :findex, 0)
     theme = Keyword.get(opts, :theme, :default)
-    on_click = Keyword.get(opts, :on_click, &Button.nop/0)
+    checked = Keyword.get(opts, :checked, false)
+    on_change = Keyword.get(opts, :on_change, &Checkbox.nop/1)
 
     state = %{
       focused: false,
@@ -25,18 +26,19 @@ defmodule Terminal.Button do
       findex: findex,
       theme: theme,
       text: text,
-      on_click: on_click
+      checked: checked,
+      on_change: on_change
     }
 
     check(state)
   end
 
-  def nop(), do: nil
+  def nop(_), do: nil
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
-  def focusable(%{on_click: nil}), do: false
+  def focusable(%{on_change: nil}), do: false
   def focusable(%{findex: findex}), do: findex >= 0
   def focused(%{focused: focused}), do: focused
   def focused(state, focused), do: %{state | focused: focused}
@@ -58,14 +60,11 @@ defmodule Terminal.Button do
   def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
   def handle(state, {:key, _, @arrow_right}), do: {state, {:focus, :next}}
   def handle(state, {:key, _, @arrow_left}), do: {state, {:focus, :prev}}
-  def handle(%{on_click: on_click} = state, {:key, _, "\r"}), do: {state, on_click.()}
-
+  def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
+  def handle(state, {:key, _, " "}), do: toggle(state)
   def handle(state, {:mouse, @wheel_up, _, _, _}), do: {state, nil}
   def handle(state, {:mouse, @wheel_down, _, _, _}), do: {state, nil}
-
-  def handle(%{on_click: on_click} = state, {:mouse, _, _, _, @mouse_down}),
-    do: {state, on_click.()}
-
+  def handle(state, {:mouse, _, _, _, @mouse_down}), do: toggle(state)
   def handle(state, _event), do: {state, nil}
 
   def render(%{visible: false}, canvas), do: canvas
@@ -74,6 +73,7 @@ defmodule Terminal.Button do
     %{
       text: text,
       theme: theme,
+      checked: checked,
       focused: focused,
       size: {width, _},
       enabled: enabled
@@ -98,11 +98,15 @@ defmodule Terminal.Button do
 
     canvas = Canvas.move(canvas, 0, 0)
     canvas = Canvas.write(canvas, "[")
-    canvas = Canvas.write(canvas, String.duplicate(" ", width - 2))
+    canvas = Canvas.write(canvas, if(checked, do: "x", else: " "))
     canvas = Canvas.write(canvas, "]")
-    offset = div(width - String.length(text), 2)
-    canvas = Canvas.move(canvas, offset, 0)
+    text = String.pad_trailing(text, width - 3)
     Canvas.write(canvas, text)
+  end
+
+  defp toggle(%{on_change: on_change, checked: checked} = state) do
+    state = Map.put(state, :checked, !checked)
+    {state, on_change.(!checked)}
   end
 
   defp check(state) do
@@ -114,7 +118,8 @@ defmodule Terminal.Button do
     Check.assert_gte(:findex, state.findex, -1)
     Check.assert_atom(:theme, state.theme)
     Check.assert_string(:text, state.text)
-    Check.assert_function(:on_click, state.on_click, 0)
+    Check.assert_boolean(:checked, state.checked)
+    Check.assert_function(:on_change, state.on_change, 1)
     state
   end
 end

@@ -5,24 +5,24 @@ defmodule Terminal.Frame do
   alias Terminal.Theme
 
   def init(opts \\ []) do
-    size = Keyword.get(opts, :size, {0, 0})
-    text = Keyword.get(opts, :text, "")
-    style = Keyword.get(opts, :style, :single)
-    visible = Keyword.get(opts, :visible, true)
-    bracket = Keyword.get(opts, :bracket, false)
     origin = Keyword.get(opts, :origin, {0, 0})
+    size = Keyword.get(opts, :size, {0, 0})
+    visible = Keyword.get(opts, :visible, true)
     theme = Keyword.get(opts, :theme, :default)
     theme = Theme.get(theme)
+    bracket = Keyword.get(opts, :bracket, false)
+    style = Keyword.get(opts, :style, :single)
+    text = Keyword.get(opts, :text, "")
     back = Keyword.get(opts, :back, theme.back_readonly)
     fore = Keyword.get(opts, :fore, theme.fore_readonly)
 
     state = %{
+      origin: origin,
       size: size,
-      style: style,
       visible: visible,
       bracket: bracket,
+      style: style,
       text: text,
-      origin: origin,
       back: back,
       fore: fore
     }
@@ -31,10 +31,10 @@ defmodule Terminal.Frame do
   end
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
-  def refocus(state, _), do: state
-  def focused(state, _), do: state
-  def focused(_), do: false
   def focusable(_), do: false
+  def focused(_), do: false
+  def focused(state, _), do: state
+  def refocus(state, _), do: state
   def findex(_), do: -1
   def children(_), do: []
   def children(state, _), do: state
@@ -106,14 +106,14 @@ defmodule Terminal.Frame do
   end
 
   defp check(state) do
-    Check.assert_string(:text, state.text)
     Check.assert_point_2d(:origin, state.origin)
     Check.assert_point_2d(:size, state.size)
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:bracket, state.bracket)
-    Check.assert_in_range(:fore, state.fore, 0..15)
-    Check.assert_in_range(:back, state.back, 0..7)
     Check.assert_in_list(:style, state.style, [:single, :double])
+    Check.assert_string(:text, state.text)
+    Check.assert_in_range(:back, state.back, 0..7)
+    Check.assert_in_range(:fore, state.fore, 0..15)
     state
   end
 
