@@ -19,8 +19,9 @@ defmodule ButtonTest do
              on_click: &Button.nop/0
            }
 
-    # control getters/setters
+    # getters/setters
     assert Button.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
+    assert Button.visible(%{visible: :visible}) == :visible
     assert Button.focusable(%{enabled: false}) == false
     assert Button.focusable(%{visible: false}) == false
     assert Button.focusable(%{on_click: nil}) == false
@@ -45,7 +46,7 @@ defmodule ButtonTest do
     assert Button.update(initial, text: "text") == %{initial | text: "text"}
     assert Button.update(initial, on_click: on_click) == %{initial | on_click: on_click}
 
-    # triggers and navigation
+    # navigation
     assert Button.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
     assert Button.handle(%{}, {:key, :any, @arrow_down}) == {%{}, {:focus, :next}}
     assert Button.handle(%{}, {:key, :any, @arrow_right}) == {%{}, {:focus, :next}}
@@ -53,7 +54,17 @@ defmodule ButtonTest do
     assert Button.handle(%{}, {:key, @alt, @arrow_up}) == {%{}, {:focus, :prev}}
     assert Button.handle(%{}, {:key, @alt, @arrow_left}) == {%{}, {:focus, :prev}}
 
+    # triggers
     assert Button.handle(%{on_click: on_click}, {:key, :any, "\r"}) ==
              {%{on_click: on_click}, :click}
+
+    assert Button.handle(%{on_click: on_click}, {:mouse, :any, :any, :any, @mouse_down}) ==
+             {%{on_click: on_click}, :click}
+
+    # nops
+    assert Button.handle(%{}, :any) == {%{}, nil}
+    assert Button.handle(%{}, {:mouse, @wheel_up, :any, :any, :any}) == {%{}, nil}
+    assert Button.handle(%{}, {:mouse, @wheel_down, :any, :any, :any}) == {%{}, nil}
+    assert Button.handle(%{}, {:mouse, :any, :any, :any, @mouse_up}) == {%{}, nil}
   end
 end

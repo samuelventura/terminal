@@ -33,6 +33,7 @@ defmodule Terminal.Frame do
   end
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
+  def visible(%{visible: visible}), do: visible
   def focusable(_), do: false
   def focused(_), do: false
   def focused(state, _), do: state
@@ -48,8 +49,6 @@ defmodule Terminal.Frame do
   end
 
   def handle(state, _event), do: {state, nil}
-
-  def render(%{visible: false}, canvas), do: canvas
 
   def render(state, canvas) do
     %{

@@ -3,10 +3,11 @@ defmodule Terminal.Control do
   @callback handle(state :: any(), event :: any()) :: {state :: any(), cmd :: any()}
   @callback render(state :: any(), canvas :: any()) :: canvas :: any()
   @callback bounds(state :: any()) :: {integer(), integer(), integer(), integer()}
-  @callback refocus(state :: any(), dir :: any()) :: state :: any()
+  @callback visible(state :: any()) :: true | false
+  @callback focusable(state :: any()) :: true | false
   @callback focused(state :: any(), true | false) :: state :: any()
   @callback focused(state :: any()) :: true | false
-  @callback focusable(state :: any()) :: true | false
+  @callback refocus(state :: any(), dir :: any()) :: state :: any()
   @callback findex(state :: any()) :: integer()
   @callback children(state :: any()) :: Keyword.t()
   @callback children(state :: any(), Keyword.t()) :: any()

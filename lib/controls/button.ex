@@ -36,6 +36,7 @@ defmodule Terminal.Button do
   def nop(), do: nil
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
+  def visible(%{visible: visible}), do: visible
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
   def focusable(%{on_click: nil}), do: false
@@ -60,17 +61,11 @@ defmodule Terminal.Button do
   def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
   def handle(state, {:key, _, @arrow_right}), do: {state, {:focus, :next}}
   def handle(state, {:key, _, @arrow_left}), do: {state, {:focus, :prev}}
-  def handle(%{on_click: on_click} = state, {:key, _, "\r"}), do: {state, on_click.()}
-
+  def handle(state, {:key, _, "\r"}), do: trigger(state)
   def handle(state, {:mouse, @wheel_up, _, _, _}), do: {state, nil}
   def handle(state, {:mouse, @wheel_down, _, _, _}), do: {state, nil}
-
-  def handle(%{on_click: on_click} = state, {:mouse, _, _, _, @mouse_down}),
-    do: {state, on_click.()}
-
+  def handle(state, {:mouse, _, _, _, @mouse_down}), do: trigger(state)
   def handle(state, _event), do: {state, nil}
-
-  def render(%{visible: false}, canvas), do: canvas
 
   def render(state, canvas) do
     %{
@@ -105,6 +100,10 @@ defmodule Terminal.Button do
     offset = div(width - String.length(text), 2)
     canvas = Canvas.move(canvas, offset, 0)
     Canvas.write(canvas, text)
+  end
+
+  defp trigger(%{on_click: on_click} = state) do
+    {state, on_click.()}
   end
 
   defp check(state) do

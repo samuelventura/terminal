@@ -45,6 +45,7 @@ defmodule Terminal.Select do
   def nop(_index, _value), do: nil
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
+  def visible(%{visible: visible}), do: visible
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
   def focusable(%{on_change: nil}), do: false
@@ -88,56 +89,50 @@ defmodule Terminal.Select do
   def handle(state, {:key, _, @arrow_down}) do
     %{count: count, selected: selected} = state
     next = min(selected + 1, count - 1)
-    state = %{state | selected: next}
-    recalc_offset(state, selected)
+    trigger(state, next, selected)
   end
 
   def handle(state, {:key, _, @arrow_up}) do
     %{selected: selected} = state
     next = max(0, selected - 1)
-    state = %{state | selected: next}
-    recalc_offset(state, selected)
+    trigger(state, next, selected)
   end
 
   def handle(state, {:key, _, @page_down}) do
     %{count: count, selected: selected, size: {_, height}} = state
     next = min(selected + height, count - 1)
-    state = %{state | selected: next}
-    recalc_offset(state, selected)
+    trigger(state, next, selected)
   end
 
   def handle(state, {:key, _, @page_up}) do
     %{selected: selected, size: {_, height}} = state
     next = max(0, selected - height)
-    state = %{state | selected: next}
-    recalc_offset(state, selected)
+    trigger(state, next, selected)
   end
 
   def handle(state, {:key, _, @hend}) do
     %{count: count, selected: selected} = state
-    state = %{state | selected: count - 1}
-    recalc_offset(state, selected)
+    trigger(state, count - 1, selected)
   end
 
   def handle(state, {:key, _, @home}) do
     %{selected: selected} = state
-    state = %{state | selected: 0}
-    recalc_offset(state, selected)
+    trigger(state, 0, selected)
   end
 
-  def handle(state, {:mouse, @wheel_up, _, _, @mouse_down}) do
+  def handle(state, {:mouse, @wheel_up, _, _, _}) do
     handle(state, {:key, nil, @arrow_up})
   end
 
-  def handle(state, {:mouse, @wheel_down, _, _, @mouse_down}) do
+  def handle(state, {:mouse, @wheel_down, _, _, _}) do
     handle(state, {:key, nil, @arrow_down})
   end
 
   def handle(state, {:mouse, _, _, my, @mouse_down}) do
     %{count: count, selected: selected, offset: offset} = state
-    next = min(count - 1, my + offset)
-    state = %{state | selected: next}
-    recalc_offset(state, selected)
+    next = my + offset
+    next = if next >= count, do: selected, else: next
+    trigger(state, next, selected)
   end
 
   def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
@@ -147,8 +142,6 @@ defmodule Terminal.Select do
   def handle(state, {:key, @alt, "\r"}), do: {state, trigger(state)}
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
   def handle(state, _event), do: {state, nil}
-
-  def render(%{visible: false}, canvas), do: canvas
 
   def render(state, canvas) do
     %{
@@ -194,15 +187,6 @@ defmodule Terminal.Select do
     end
   end
 
-  defp recalc_offset(state, selected) do
-    state = recalc_offset(state)
-
-    case state.selected do
-      ^selected -> {state, nil}
-      _ -> {state, trigger(state)}
-    end
-  end
-
   defp recalc_offset(
          %{
            selected: selected,
@@ -220,6 +204,16 @@ defmodule Terminal.Select do
     offset = if offset > offsel, do: offsel, else: offset
 
     %{state | selected: selected, offset: offset}
+  end
+
+  defp trigger(state, next, selected) do
+    state = %{state | selected: next}
+    state = recalc_offset(state)
+
+    case state.selected do
+      ^selected -> {state, nil}
+      _ -> {state, trigger(state)}
+    end
   end
 
   defp trigger(%{selected: selected, map: map, on_change: on_change}) do

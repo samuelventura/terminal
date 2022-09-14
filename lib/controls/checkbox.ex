@@ -38,6 +38,7 @@ defmodule Terminal.Checkbox do
   def nop(_), do: nil
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
+  def visible(%{visible: visible}), do: visible
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
   def focusable(%{on_change: nil}), do: false
@@ -62,14 +63,13 @@ defmodule Terminal.Checkbox do
   def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
   def handle(state, {:key, _, @arrow_right}), do: {state, {:focus, :next}}
   def handle(state, {:key, _, @arrow_left}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, @alt, "\r"}), do: retrigger(state)
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
-  def handle(state, {:key, _, " "}), do: toggle(state)
+  def handle(state, {:key, _, " "}), do: trigger(state)
   def handle(state, {:mouse, @wheel_up, _, _, _}), do: {state, nil}
   def handle(state, {:mouse, @wheel_down, _, _, _}), do: {state, nil}
-  def handle(state, {:mouse, _, _, _, @mouse_down}), do: toggle(state)
+  def handle(state, {:mouse, _, _, _, @mouse_down}), do: trigger(state)
   def handle(state, _event), do: {state, nil}
-
-  def render(%{visible: false}, canvas), do: canvas
 
   def render(state, canvas) do
     %{
@@ -106,7 +106,11 @@ defmodule Terminal.Checkbox do
     Canvas.write(canvas, text)
   end
 
-  defp toggle(%{on_change: on_change, checked: checked} = state) do
+  defp retrigger(%{on_change: on_change, checked: checked} = state) do
+    {state, on_change.(checked)}
+  end
+
+  defp trigger(%{on_change: on_change, checked: checked} = state) do
     state = Map.put(state, :checked, !checked)
     {state, on_change.(!checked)}
   end

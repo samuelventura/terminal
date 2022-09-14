@@ -23,6 +23,7 @@ defmodule FrameTest do
 
     # control getter/setters
     assert Frame.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
+    assert Frame.visible(%{visible: :visible}) == :visible
     assert Frame.focusable(%{}) == false
     assert Frame.focused(%{}) == false
     assert Frame.focused(%{}, false) == %{}
@@ -43,8 +44,6 @@ defmodule FrameTest do
     assert Frame.update(initial, fore: @red) == %{initial | fore: @red}
 
     # nops
-    assert Frame.handle(%{}, nil) == {%{}, nil}
-
-    assert Frame.render(%{visible: false}, nil) == nil
+    assert Frame.handle(%{}, :any) == {%{}, nil}
   end
 end

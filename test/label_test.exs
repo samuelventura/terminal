@@ -21,6 +21,7 @@ defmodule LabelTest do
 
     # panel getter/setters
     assert Label.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
+    assert Label.visible(%{visible: :visible}) == :visible
     assert Label.focusable(%{}) == false
     assert Label.focused(%{}) == false
     assert Label.focused(%{}, false) == %{}
@@ -40,7 +41,5 @@ defmodule LabelTest do
 
     # nops
     assert Label.handle(%{}, nil) == {%{}, nil}
-
-    assert Label.render(%{visible: false}, nil) == nil
   end
 end

@@ -20,8 +20,9 @@ defmodule PanelTest do
              focus: nil
            }
 
-    # control getters/setters
+    # getters/setters
     assert Panel.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
+    assert Panel.visible(%{visible: :visible}) == :visible
     assert Panel.focusable(%{enabled: false}) == false
     assert Panel.focusable(%{visible: false}) == false
     assert Panel.focusable(%{findex: -1}) == false

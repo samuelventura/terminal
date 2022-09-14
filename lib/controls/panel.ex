@@ -30,6 +30,7 @@ defmodule Terminal.Panel do
   end
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
+  def visible(%{visible: visible}), do: visible
   def focused(%{focused: focused}), do: focused
   def focused(state, focused), do: Map.put(state, :focused, focused)
   def refocus(state, dir), do: focus_update(state, dir)
@@ -113,28 +114,22 @@ defmodule Terminal.Panel do
 
   def handle(state, _event), do: {state, nil}
 
-  def render(%{visible: false}, canvas), do: canvas
-
   def render(%{index: index, children: children}, canvas) do
     for id <- Enum.reverse(index), reduce: canvas do
       canvas ->
         mote = Map.get(children, id)
-        bounds = mote_bounds(mote)
-        canvas = Canvas.push(canvas, bounds)
-        canvas = mote_render(mote, canvas)
-        canvas = Canvas.pop(canvas)
-        canvas
+        mote_render(mote, canvas)
     end
   end
 
-  def in_bounds({x, y, w, h}, mx, my) do
+  defp in_bounds({x, y, w, h}, mx, my) do
     case mx >= x && mx < x + w && my >= y && my < y + h do
       false -> false
       true -> {mx - x, my - y}
     end
   end
 
-  def child_event(%{focus: focus, root: root} = state, mote, event) do
+  defp child_event(%{focus: focus, root: root} = state, mote, event) do
     case event do
       {:focus, dir} ->
         {first, next} = focus_next(state, focus, dir)
@@ -287,11 +282,23 @@ defmodule Terminal.Panel do
   defp put_child(state, id, child), do: put_in(state, [:children, id], child)
   defp child_focusable(state, id), do: mote_focusable(get_child(state, id))
   defp child_findex(state, id), do: mote_findex(get_child(state, id))
-  defp mote_render({module, state}, canvas), do: module.render(state, canvas)
   defp mote_bounds({module, state}), do: module.bounds(state)
   defp mote_findex({module, state}), do: module.findex(state)
   defp mote_focusable({module, state}), do: module.focusable(state)
   defp mote_focused({module, state}), do: module.focused(state)
+
+  defp mote_render({module, state}, canvas) do
+    case module.visible(state) do
+      false ->
+        canvas
+
+      true ->
+        bounds = module.bounds(state)
+        canvas = Canvas.push(canvas, bounds)
+        canvas = module.render(state, canvas)
+        Canvas.pop(canvas)
+    end
+  end
 
   defp mote_focused({module, state}, focused, dir) do
     state = module.focused(state, focused)

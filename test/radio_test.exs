@@ -22,8 +22,9 @@ defmodule RadioTest do
              on_change: &Radio.nop/2
            }
 
-    # control getters/setters
+    # getters/setters
     assert Radio.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
+    assert Radio.visible(%{visible: :visible}) == :visible
     assert Radio.focusable(%{initial | enabled: false}) == false
     assert Radio.focusable(%{initial | visible: false}) == false
     assert Radio.focusable(%{initial | on_change: nil}) == false
@@ -37,7 +38,7 @@ defmodule RadioTest do
     assert Radio.children(:state, []) == :state
 
     # update
-    on_change = fn index, value -> "#{index}:#{value}" end
+    on_change = fn index, item -> {index, item} end
     assert Radio.update(initial, focused: :any) == initial
     assert Radio.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Radio.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
@@ -77,41 +78,79 @@ defmodule RadioTest do
                map: %{0 => :item0, 1 => :item1}
            }
 
-    ######################################################################
-    # reset of calculated props
+    # recalc
     assert Radio.update(%{initial | selected: 1}, items: [:item0, :item1]) == %{
              initial
              | items: [:item0, :item1],
+               selected: 0,
                count: 2,
-               map: %{0 => :item0, 1 => :item1},
-               selected: 0
+               map: %{0 => :item0, 1 => :item1}
            }
 
-    # triggers and navigation
+    # navigation
     assert Radio.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
     assert Radio.handle(%{}, {:key, :any, @arrow_down}) == {%{}, {:focus, :next}}
     assert Radio.handle(%{}, {:key, @alt, "\t"}) == {%{}, {:focus, :prev}}
     assert Radio.handle(%{}, {:key, @alt, @arrow_up}) == {%{}, {:focus, :prev}}
     assert Radio.handle(%{}, {:key, :any, "\r"}) == {%{}, {:focus, :next}}
 
-    # ignore keyboard events
-    assert Radio.handle(initial, {:key, :any, @arrow_left}) == {initial, nil}
-    assert Radio.handle(initial, {:key, :any, @arrow_right}) == {initial, nil}
+    # triggers
+    sample = Radio.init(items: [:item0, :item1, :item2], size: {10, 1}, on_change: on_change)
 
-    # arrow up down
-    dual = Radio.init(items: [:item0, :item1], size: {0, 2}, on_change: on_change)
-    assert Radio.handle(dual, {:key, :any, @arrow_left}) == {dual, nil}
+    assert Radio.handle(sample, {:key, :any, @arrow_right}) ==
+             {%{sample | selected: 1}, {:item, 1, :item1, {1, :item1}}}
 
-    assert Radio.handle(%{dual | selected: 1}, {:key, :any, @arrow_right}) ==
-             {%{dual | selected: 1}, nil}
+    assert Radio.handle(sample, {:key, :any, @hend}) ==
+             {%{sample | selected: 2}, {:item, 2, :item2, {2, :item2}}}
 
-    assert Radio.handle(dual, {:key, :any, @arrow_right}) ==
-             {%{dual | selected: 1}, {:item, 1, :item1, "1:item1"}}
+    assert Radio.handle(sample, {:mouse, @wheel_down, :any, :any, :any}) ==
+             {%{sample | selected: 1}, {:item, 1, :item1, {1, :item1}}}
 
-    assert Radio.handle(%{dual | selected: 1}, {:key, :any, @arrow_left}) ==
-             {dual, {:item, 0, :item0, "0:item0"}}
+    assert Radio.handle(%{sample | selected: 1}, {:key, :any, @arrow_left}) ==
+             {sample, {:item, 0, :item0, {0, :item0}}}
 
-    # retrigger on change
-    assert Radio.handle(dual, {:key, @alt, "\r"}) == {dual, {:item, 0, :item0, "0:item0"}}
+    assert Radio.handle(%{sample | selected: 2}, {:key, :any, @home}) ==
+             {sample, {:item, 0, :item0, {0, :item0}}}
+
+    assert Radio.handle(%{sample | selected: 1}, {:mouse, @wheel_up, :any, :any, :any}) ==
+             {sample, {:item, 0, :item0, {0, :item0}}}
+
+    assert Radio.handle(sample, {:mouse, :any, 7, :any, @mouse_down}) ==
+             {%{sample | selected: 1}, {:item, 1, :item1, {1, :item1}}}
+
+    assert Radio.handle(%{sample | selected: 2}, {:mouse, :any, 3, :any, @mouse_down}) ==
+             {%{sample | selected: 0}, {:item, 0, :item0, {0, :item0}}}
+
+    # retriggers
+    assert Radio.handle(sample, {:key, @alt, "\r"}) == {sample, {:item, 0, :item0, {0, :item0}}}
+
+    # nops
+    assert Radio.handle(%{}, nil) == {%{}, nil}
+    assert Radio.handle(initial, {:mouse, :any, :any, :any, :any}) == {initial, nil}
+    assert Radio.handle(initial, {:key, :any, :any}) == {initial, nil}
+    assert Radio.handle(sample, {:key, :any, @arrow_left}) == {sample, nil}
+    assert Radio.handle(sample, {:key, :any, @home}) == {sample, nil}
+    assert Radio.handle(sample, {:mouse, @wheel_up, :any, :any, :any}) == {sample, nil}
+
+    assert Radio.handle(%{sample | selected: 2}, {:key, :any, @arrow_right}) ==
+             {%{sample | selected: 2}, nil}
+
+    assert Radio.handle(%{sample | selected: 2}, {:key, :any, @hend}) ==
+             {%{sample | selected: 2}, nil}
+
+    assert Radio.handle(%{sample | selected: 2}, {:mouse, @wheel_down, :any, :any, :any}) ==
+             {%{sample | selected: 2}, nil}
+
+    assert Radio.handle(%{sample | selected: 2}, {:mouse, :any, 5, :any, @mouse_down}) ==
+             {%{sample | selected: 2}, nil}
+
+    # offset (any key/mouse should correct it)
+    assert Radio.handle(%{sample | selected: -1}, {:key, :any, @arrow_left}) ==
+             {sample, {:item, 0, :item0, {0, :item0}}}
+
+    assert Radio.handle(%{sample | selected: -1}, {:mouse, @wheel_up, :any, :any, :any}) ==
+             {sample, {:item, 0, :item0, {0, :item0}}}
+
+    assert Radio.update(%{sample | selected: -1}, selected: 0) == sample
   end
 end

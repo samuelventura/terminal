@@ -43,6 +43,7 @@ defmodule Terminal.Radio do
   def nop(_index, _value), do: nil
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
+  def visible(%{visible: visible}), do: visible
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
   def focusable(%{on_change: nil}), do: false
@@ -85,15 +86,23 @@ defmodule Terminal.Radio do
   def handle(state, {:key, _, @arrow_right}) do
     %{count: count, selected: selected} = state
     next = min(selected + 1, count - 1)
-    state = %{state | selected: next}
-    trigger(state, selected)
+    trigger(state, next, selected)
   end
 
   def handle(state, {:key, _, @arrow_left}) do
     %{selected: selected} = state
     next = max(0, selected - 1)
-    state = %{state | selected: next}
-    trigger(state, selected)
+    trigger(state, next, selected)
+  end
+
+  def handle(state, {:key, _, @hend}) do
+    %{count: count, selected: selected} = state
+    trigger(state, count - 1, selected)
+  end
+
+  def handle(state, {:key, _, @home}) do
+    %{selected: selected} = state
+    trigger(state, 0, selected)
   end
 
   def handle(state, {:mouse, @wheel_up, _, _, _}) do
@@ -118,7 +127,7 @@ defmodule Terminal.Radio do
     Enum.find_value(list, {state, nil}, fn {i, s, e} ->
       case mx >= s && mx < e do
         false -> false
-        true -> trigger(%{state | selected: i}, selected)
+        true -> trigger(state, i, selected)
       end
     end)
   end
@@ -130,8 +139,6 @@ defmodule Terminal.Radio do
   def handle(state, {:key, @alt, "\r"}), do: {state, trigger(state)}
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
   def handle(state, _event), do: {state, nil}
-
-  def render(%{visible: false}, canvas), do: canvas
 
   def render(state, canvas) do
     %{
@@ -199,7 +206,9 @@ defmodule Terminal.Radio do
     %{state | selected: selected}
   end
 
-  defp trigger(state, selected) do
+  defp trigger(state, next, selected) do
+    state = %{state | selected: next}
+
     case state.selected do
       ^selected -> {state, nil}
       _ -> {state, trigger(state)}

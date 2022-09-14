@@ -20,8 +20,9 @@ defmodule CheckboxTest do
              on_change: &Checkbox.nop/1
            }
 
-    # control getters/setters
+    # getters/setters
     assert Checkbox.bounds(%{origin: {1, 2}, size: {3, 4}}) == {1, 2, 3, 4}
+    assert Checkbox.visible(%{visible: :visible}) == :visible
     assert Checkbox.focusable(%{enabled: false}) == false
     assert Checkbox.focusable(%{visible: false}) == false
     assert Checkbox.focusable(%{on_change: nil}) == false
@@ -44,9 +45,10 @@ defmodule CheckboxTest do
     assert Checkbox.update(initial, findex: -1) == %{initial | findex: -1}
     assert Checkbox.update(initial, theme: :theme) == %{initial | theme: :theme}
     assert Checkbox.update(initial, text: "text") == %{initial | text: "text"}
+    assert Checkbox.update(initial, checked: true) == %{initial | checked: true}
     assert Checkbox.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
-    # triggers and navigation
+    # navigation
     assert Checkbox.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
     assert Checkbox.handle(%{}, {:key, :any, @arrow_down}) == {%{}, {:focus, :next}}
     assert Checkbox.handle(%{}, {:key, :any, @arrow_right}) == {%{}, {:focus, :next}}
@@ -55,6 +57,7 @@ defmodule CheckboxTest do
     assert Checkbox.handle(%{}, {:key, @alt, @arrow_up}) == {%{}, {:focus, :prev}}
     assert Checkbox.handle(%{}, {:key, @alt, @arrow_left}) == {%{}, {:focus, :prev}}
 
+    # triggers
     assert Checkbox.handle(%{on_change: on_change, checked: false}, {:key, :any, " "}) ==
              {%{on_change: on_change, checked: true}, true}
 
@@ -63,5 +66,15 @@ defmodule CheckboxTest do
              {:mouse, :any, :any, :any, @mouse_down}
            ) ==
              {%{on_change: on_change, checked: true}, true}
+
+    # retriggers
+    assert Checkbox.handle(%{on_change: on_change, checked: true}, {:key, @alt, "\r"}) ==
+             {%{on_change: on_change, checked: true}, true}
+
+    # nops
+    assert Checkbox.handle(%{}, :any) == {%{}, nil}
+    assert Checkbox.handle(%{}, {:mouse, @wheel_up, :any, :any, :any}) == {%{}, nil}
+    assert Checkbox.handle(%{}, {:mouse, @wheel_down, :any, :any, :any}) == {%{}, nil}
+    assert Checkbox.handle(%{}, {:mouse, :any, :any, :any, @mouse_up}) == {%{}, nil}
   end
 end

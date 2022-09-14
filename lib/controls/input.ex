@@ -40,6 +40,7 @@ defmodule Terminal.Input do
   def nop(_value), do: nil
 
   def bounds(%{origin: {x, y}, size: {w, h}}), do: {x, y, w, h}
+  def visible(%{visible: visible}), do: visible
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
   def focusable(%{on_change: nil}), do: false
@@ -80,6 +81,8 @@ defmodule Terminal.Input do
   def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
   def handle(state, {:key, @alt, "\r"}), do: {state, trigger(state)}
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
+  def handle(state, {:mouse, @wheel_up, _, _, _}), do: {state, nil}
+  def handle(state, {:mouse, @wheel_down, _, _, _}), do: {state, nil}
 
   def handle(%{cursor: cursor} = state, {:key, _, @arrow_left}) do
     cursor = if cursor > 0, do: cursor - 1, else: cursor
@@ -136,8 +139,8 @@ defmodule Terminal.Input do
     end
   end
 
-  def handle(%{cursor: cursor, text: text} = state, {:key, 0, data}) when is_binary(data) do
-    %{size: {width, _}} = state
+  def handle(state, {:key, 0, data}) when is_binary(data) do
+    %{cursor: cursor, text: text, size: {width, _}} = state
     count = String.length(text)
 
     case count do
@@ -152,9 +155,6 @@ defmodule Terminal.Input do
     end
   end
 
-  def handle(state, {:mouse, @wheel_up, _, _, _}), do: {state, nil}
-  def handle(state, {:mouse, @wheel_down, _, _, _}), do: {state, nil}
-
   def handle(%{text: text} = state, {:mouse, _, mx, _, @mouse_down}) do
     cursor = min(mx, String.length(text))
     state = %{state | cursor: cursor}
@@ -162,8 +162,6 @@ defmodule Terminal.Input do
   end
 
   def handle(state, _event), do: {state, nil}
-
-  def render(%{visible: false}, canvas), do: canvas
 
   def render(state, canvas) do
     %{
