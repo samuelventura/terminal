@@ -1,22 +1,24 @@
 defmodule Terminal.Input do
   @behaviour Terminal.Control
   use Terminal.Const
+  alias Terminal.Control
   alias Terminal.Check
   alias Terminal.Input
   alias Terminal.Canvas
   alias Terminal.Theme
 
   def init(opts \\ []) do
-    text = Keyword.get(opts, :text, "")
-    origin = Keyword.get(opts, :origin, {0, 0})
-    size = Keyword.get(opts, :size, {String.length(text), 1})
-    visible = Keyword.get(opts, :visible, true)
-    enabled = Keyword.get(opts, :enabled, true)
-    findex = Keyword.get(opts, :findex, 0)
-    theme = Keyword.get(opts, :theme, :default)
-    password = Keyword.get(opts, :password, false)
-    cursor = Keyword.get(opts, :cursor, String.length(text))
-    on_change = Keyword.get(opts, :on_change, &Input.nop/1)
+    opts = Enum.into(opts, %{})
+    text = Map.get(opts, :text, "")
+    origin = Map.get(opts, :origin, {0, 0})
+    size = Map.get(opts, :size, {String.length(text), 1})
+    visible = Map.get(opts, :visible, true)
+    enabled = Map.get(opts, :enabled, true)
+    findex = Map.get(opts, :findex, 0)
+    theme = Map.get(opts, :theme, :default)
+    password = Map.get(opts, :password, false)
+    cursor = Map.get(opts, :cursor, String.length(text))
+    on_change = Map.get(opts, :on_change, &Input.nop/1)
 
     state = %{
       focused: false,
@@ -68,7 +70,8 @@ defmodule Terminal.Input do
           props
       end
 
-    Map.merge(state, props)
+    state = Control.merge(state, props)
+    check(state)
   end
 
   def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}

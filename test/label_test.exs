@@ -30,11 +30,11 @@ defmodule LabelTest do
     assert Label.children(:state) == []
     assert Label.children(:state, []) == :state
 
-    # react update
-    assert Label.update(initial, text: "text") == %{initial | text: "text"}
+    # update
     assert Label.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Label.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
     assert Label.update(initial, visible: false) == %{initial | visible: false}
+    assert Label.update(initial, text: "text") == %{initial | text: "text"}
     assert Label.update(initial, back: @red) == %{initial | back: @red}
     assert Label.update(initial, fore: @red) == %{initial | fore: @red}
 

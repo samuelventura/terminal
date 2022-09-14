@@ -57,7 +57,7 @@ defmodule Terminal.App do
 
   defp exec_realize(react, func, opts, map) do
     markup = func.(react, opts)
-    {key, mote} = realize(react, markup, map, focused: true, root: true)
+    {key, mote} = realize(react, markup, map, root: true)
     state = %{func: func, opts: opts, key: key, mote: mote, react: react}
     exec_effects(state)
   end

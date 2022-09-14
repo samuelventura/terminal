@@ -28,9 +28,21 @@ defmodule PanelTest do
     assert Panel.focused(%{focused: false}) == false
     assert Panel.focused(%{focused: true}) == true
     assert Panel.focused(initial, true) == %{initial | focused: true}
-    # assert Panel.refocus(:state, :dir) == :state
     assert Panel.findex(%{findex: 0}) == 0
-    # assert Panel.children(:state) == []
-    # assert Panel.children(:state, []) == :state
+    # refocus
+    # get children
+    # set children
+
+    # update
+    assert Panel.update(initial, focused: :any) == initial
+    assert Panel.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
+    assert Panel.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
+    assert Panel.update(initial, visible: false) == %{initial | visible: false}
+    assert Panel.update(initial, enabled: false) == %{initial | enabled: false}
+    assert Panel.update(initial, findex: -1) == %{initial | findex: -1}
+    assert Panel.update(initial, root: :any) == initial
+    assert Panel.update(initial, index: :any) == initial
+    assert Panel.update(initial, children: :any) == initial
+    assert Panel.update(initial, focus: :any) == initial
   end
 end

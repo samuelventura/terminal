@@ -33,15 +33,15 @@ defmodule ButtonTest do
     assert Button.children(:state) == []
     assert Button.children(:state, []) == :state
 
-    # react update
+    # update
     on_click = fn -> :click end
-    assert Button.update(initial, focused: true) == initial
-    assert Button.update(initial, visible: false) == %{initial | visible: false}
-    assert Button.update(initial, enabled: false) == %{initial | enabled: false}
-    assert Button.update(initial, findex: 1) == %{initial | findex: 1}
-    assert Button.update(initial, theme: :theme) == %{initial | theme: :theme}
+    assert Button.update(initial, focused: :any) == initial
     assert Button.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Button.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
+    assert Button.update(initial, visible: false) == %{initial | visible: false}
+    assert Button.update(initial, enabled: false) == %{initial | enabled: false}
+    assert Button.update(initial, findex: -1) == %{initial | findex: -1}
+    assert Button.update(initial, theme: :theme) == %{initial | theme: :theme}
     assert Button.update(initial, text: "text") == %{initial | text: "text"}
     assert Button.update(initial, on_click: on_click) == %{initial | on_click: on_click}
 

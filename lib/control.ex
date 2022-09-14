@@ -11,4 +11,12 @@ defmodule Terminal.Control do
   @callback children(state :: any()) :: Keyword.t()
   @callback children(state :: any(), Keyword.t()) :: any()
   @callback update(state :: any(), Keyword.t()) :: any()
+
+  def merge(map, props) do
+    for {key, value} <- props, reduce: map do
+      map ->
+        if !Map.has_key?(map, key), do: raise("Invalid prop #{key}: #{inspect(value)}")
+        Map.put(map, key, value)
+    end
+  end
 end

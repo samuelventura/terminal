@@ -16,7 +16,7 @@ defmodule RadioTest do
              findex: 0,
              theme: :default,
              items: [],
-             selected: 0,
+             selected: -1,
              count: 0,
              map: %{},
              on_change: &Radio.nop/2
@@ -36,26 +36,54 @@ defmodule RadioTest do
     assert Radio.children(:state) == []
     assert Radio.children(:state, []) == :state
 
-    # react update
+    # update
     on_change = fn index, value -> "#{index}:#{value}" end
-    assert Radio.update(initial, focused: true) == initial
-    assert Radio.update(initial, count: -1) == initial
-    assert Radio.update(initial, map: :map) == initial
-    assert Radio.update(initial, selected: -1) == %{initial | selected: -1}
+    assert Radio.update(initial, focused: :any) == initial
+    assert Radio.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
+    assert Radio.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
     assert Radio.update(initial, visible: false) == %{initial | visible: false}
     assert Radio.update(initial, enabled: false) == %{initial | enabled: false}
     assert Radio.update(initial, findex: 1) == %{initial | findex: 1}
     assert Radio.update(initial, theme: :theme) == %{initial | theme: :theme}
-    assert Radio.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
-    assert Radio.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
+    assert Radio.update(initial, selected: 0) == initial
+    assert Radio.update(initial, count: -1) == initial
+    assert Radio.update(initial, map: :map) == initial
     assert Radio.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
-    # reset of calculated props
-    assert Radio.update(%{initial | selected: 1}, items: ["item0", "item1"]) == %{
+    # update items
+    assert Radio.update(initial, items: [:item0, :item1]) == %{
              initial
-             | items: ["item0", "item1"],
+             | items: [:item0, :item1],
+               selected: 0,
                count: 2,
-               map: %{0 => "item0", 1 => "item1"},
+               map: %{0 => :item0, 1 => :item1}
+           }
+
+    # update items + selected
+    assert Radio.update(initial, items: [:item0, :item1], selected: 1) == %{
+             initial
+             | items: [:item0, :item1],
+               selected: 1,
+               count: 2,
+               map: %{0 => :item0, 1 => :item1}
+           }
+
+    # update selected + items
+    assert Radio.update(initial, selected: 1, items: [:item0, :item1]) == %{
+             initial
+             | items: [:item0, :item1],
+               selected: 1,
+               count: 2,
+               map: %{0 => :item0, 1 => :item1}
+           }
+
+    ######################################################################
+    # reset of calculated props
+    assert Radio.update(%{initial | selected: 1}, items: [:item0, :item1]) == %{
+             initial
+             | items: [:item0, :item1],
+               count: 2,
+               map: %{0 => :item0, 1 => :item1},
                selected: 0
            }
 
@@ -71,19 +99,19 @@ defmodule RadioTest do
     assert Radio.handle(initial, {:key, :any, @arrow_right}) == {initial, nil}
 
     # arrow up down
-    dual = Radio.init(items: ["item0", "item1"], size: {0, 2}, on_change: on_change)
+    dual = Radio.init(items: [:item0, :item1], size: {0, 2}, on_change: on_change)
     assert Radio.handle(dual, {:key, :any, @arrow_left}) == {dual, nil}
 
     assert Radio.handle(%{dual | selected: 1}, {:key, :any, @arrow_right}) ==
              {%{dual | selected: 1}, nil}
 
     assert Radio.handle(dual, {:key, :any, @arrow_right}) ==
-             {%{dual | selected: 1}, {:item, 1, "item1", "1:item1"}}
+             {%{dual | selected: 1}, {:item, 1, :item1, "1:item1"}}
 
     assert Radio.handle(%{dual | selected: 1}, {:key, :any, @arrow_left}) ==
-             {dual, {:item, 0, "item0", "0:item0"}}
+             {dual, {:item, 0, :item0, "0:item0"}}
 
     # retrigger on change
-    assert Radio.handle(dual, {:key, @alt, "\r"}) == {dual, {:item, 0, "item0", "0:item0"}}
+    assert Radio.handle(dual, {:key, @alt, "\r"}) == {dual, {:item, 0, :item0, "0:item0"}}
   end
 end

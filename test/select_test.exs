@@ -37,21 +37,51 @@ defmodule SelectTest do
     assert Select.children(:state) == []
     assert Select.children(:state, []) == :state
 
-    # react update
+    # update
     on_change = fn index, value -> "#{index}:#{value}" end
-    assert Select.update(initial, focused: true) == initial
-    assert Select.update(initial, count: -1) == initial
-    assert Select.update(initial, map: :map) == initial
-    assert Select.update(initial, offset: -1) == initial
-    assert Select.update(initial, selected: -1) == %{initial | selected: -1}
+    assert Select.update(initial, focused: :any) == initial
+    assert Select.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
+    assert Select.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
     assert Select.update(initial, visible: false) == %{initial | visible: false}
     assert Select.update(initial, enabled: false) == %{initial | enabled: false}
     assert Select.update(initial, findex: 1) == %{initial | findex: 1}
     assert Select.update(initial, theme: :theme) == %{initial | theme: :theme}
-    assert Select.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
-    assert Select.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
+    assert Select.update(initial, selected: 0) == initial
+    assert Select.update(initial, count: -1) == initial
+    assert Select.update(initial, map: :map) == initial
+    assert Select.update(initial, offset: -1) == initial
     assert Select.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
+    # update items
+    assert Select.update(initial, items: [:item0, :item1]) == %{
+             initial
+             | items: [:item0, :item1],
+               selected: 0,
+               count: 2,
+               map: %{0 => :item0, 1 => :item1}
+           }
+
+    # update items + selected
+    assert Select.update(initial, items: [:item0, :item1], selected: 1) == %{
+             initial
+             | items: [:item0, :item1],
+               selected: 1,
+               offset: 1,
+               count: 2,
+               map: %{0 => :item0, 1 => :item1}
+           }
+
+    # update selected + items
+    assert Select.update(initial, selected: 1, items: [:item0, :item1]) == %{
+             initial
+             | items: [:item0, :item1],
+               selected: 1,
+               offset: 1,
+               count: 2,
+               map: %{0 => :item0, 1 => :item1}
+           }
+
+    ######################################################################
     # reset of calculated props
     assert Select.update(%{initial | selected: 1, offset: 2}, items: ["item0", "item1"]) == %{
              initial

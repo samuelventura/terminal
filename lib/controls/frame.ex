@@ -1,20 +1,22 @@
 defmodule Terminal.Frame do
   @behaviour Terminal.Control
+  alias Terminal.Control
   alias Terminal.Check
   alias Terminal.Canvas
   alias Terminal.Theme
 
   def init(opts \\ []) do
-    origin = Keyword.get(opts, :origin, {0, 0})
-    size = Keyword.get(opts, :size, {0, 0})
-    visible = Keyword.get(opts, :visible, true)
-    theme = Keyword.get(opts, :theme, :default)
+    opts = Enum.into(opts, %{})
+    origin = Map.get(opts, :origin, {0, 0})
+    size = Map.get(opts, :size, {0, 0})
+    visible = Map.get(opts, :visible, true)
+    theme = Map.get(opts, :theme, :default)
     theme = Theme.get(theme)
-    bracket = Keyword.get(opts, :bracket, false)
-    style = Keyword.get(opts, :style, :single)
-    text = Keyword.get(opts, :text, "")
-    back = Keyword.get(opts, :back, theme.back_readonly)
-    fore = Keyword.get(opts, :fore, theme.fore_readonly)
+    bracket = Map.get(opts, :bracket, false)
+    style = Map.get(opts, :style, :single)
+    text = Map.get(opts, :text, "")
+    back = Map.get(opts, :back, theme.back_readonly)
+    fore = Map.get(opts, :fore, theme.fore_readonly)
 
     state = %{
       origin: origin,
@@ -41,7 +43,7 @@ defmodule Terminal.Frame do
 
   def update(state, props) do
     props = Enum.into(props, %{})
-    state = Map.merge(state, props)
+    state = Control.merge(state, props)
     check(state)
   end
 

@@ -1,21 +1,23 @@
 defmodule Terminal.Checkbox do
   @behaviour Terminal.Control
   use Terminal.Const
+  alias Terminal.Control
   alias Terminal.Check
   alias Terminal.Checkbox
   alias Terminal.Canvas
   alias Terminal.Theme
 
   def init(opts \\ []) do
-    text = Keyword.get(opts, :text, "")
-    origin = Keyword.get(opts, :origin, {0, 0})
-    size = Keyword.get(opts, :size, {String.length(text) + 3, 1})
-    visible = Keyword.get(opts, :visible, true)
-    enabled = Keyword.get(opts, :enabled, true)
-    findex = Keyword.get(opts, :findex, 0)
-    theme = Keyword.get(opts, :theme, :default)
-    checked = Keyword.get(opts, :checked, false)
-    on_change = Keyword.get(opts, :on_change, &Checkbox.nop/1)
+    opts = Enum.into(opts, %{})
+    text = Map.get(opts, :text, "")
+    origin = Map.get(opts, :origin, {0, 0})
+    size = Map.get(opts, :size, {String.length(text) + 3, 1})
+    visible = Map.get(opts, :visible, true)
+    enabled = Map.get(opts, :enabled, true)
+    findex = Map.get(opts, :findex, 0)
+    theme = Map.get(opts, :theme, :default)
+    checked = Map.get(opts, :checked, false)
+    on_change = Map.get(opts, :on_change, &Checkbox.nop/1)
 
     state = %{
       focused: false,
@@ -50,7 +52,7 @@ defmodule Terminal.Checkbox do
   def update(state, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:focused])
-    state = Map.merge(state, props)
+    state = Control.merge(state, props)
     check(state)
   end
 

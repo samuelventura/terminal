@@ -1,15 +1,17 @@
 defmodule Terminal.Panel do
   @behaviour Terminal.Control
+  alias Terminal.Control
   alias Terminal.Check
   alias Terminal.Canvas
 
   def init(opts \\ []) do
-    origin = Keyword.get(opts, :origin, {0, 0})
-    size = Keyword.get(opts, :size, {0, 0})
-    visible = Keyword.get(opts, :visible, true)
-    enabled = Keyword.get(opts, :enabled, true)
-    findex = Keyword.get(opts, :findex, 0)
-    root = Keyword.get(opts, :root, false)
+    opts = Enum.into(opts, %{})
+    origin = Map.get(opts, :origin, {0, 0})
+    size = Map.get(opts, :size, {0, 0})
+    visible = Map.get(opts, :visible, true)
+    enabled = Map.get(opts, :enabled, true)
+    findex = Map.get(opts, :findex, 0)
+    root = Map.get(opts, :root, false)
 
     state = %{
       focused: root,
@@ -55,7 +57,7 @@ defmodule Terminal.Panel do
   def update(state, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:root, :children, :focus, :index, :focused])
-    state = Map.merge(state, props)
+    state = Control.merge(state, props)
     state = focus_update(state)
     check(state)
   end

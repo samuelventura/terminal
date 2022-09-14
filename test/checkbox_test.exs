@@ -34,15 +34,15 @@ defmodule CheckboxTest do
     assert Checkbox.children(:state) == []
     assert Checkbox.children(:state, []) == :state
 
-    # react update
+    # update
     on_change = fn checked -> checked end
-    assert Checkbox.update(initial, focused: true) == initial
-    assert Checkbox.update(initial, visible: false) == %{initial | visible: false}
-    assert Checkbox.update(initial, enabled: false) == %{initial | enabled: false}
-    assert Checkbox.update(initial, findex: 1) == %{initial | findex: 1}
-    assert Checkbox.update(initial, theme: :theme) == %{initial | theme: :theme}
+    assert Checkbox.update(initial, focused: :any) == initial
     assert Checkbox.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Checkbox.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
+    assert Checkbox.update(initial, visible: false) == %{initial | visible: false}
+    assert Checkbox.update(initial, enabled: false) == %{initial | enabled: false}
+    assert Checkbox.update(initial, findex: -1) == %{initial | findex: -1}
+    assert Checkbox.update(initial, theme: :theme) == %{initial | theme: :theme}
     assert Checkbox.update(initial, text: "text") == %{initial | text: "text"}
     assert Checkbox.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 

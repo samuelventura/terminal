@@ -1,21 +1,23 @@
 defmodule Terminal.Radio do
   @behaviour Terminal.Control
   use Terminal.Const
+  alias Terminal.Control
   alias Terminal.Check
   alias Terminal.Radio
   alias Terminal.Canvas
   alias Terminal.Theme
 
   def init(opts \\ []) do
-    origin = Keyword.get(opts, :origin, {0, 0})
-    size = Keyword.get(opts, :size, {0, 0})
-    visible = Keyword.get(opts, :visible, true)
-    enabled = Keyword.get(opts, :enabled, true)
-    findex = Keyword.get(opts, :findex, 0)
-    theme = Keyword.get(opts, :theme, :default)
-    items = Keyword.get(opts, :items, [])
-    selected = Keyword.get(opts, :selected, 0)
-    on_change = Keyword.get(opts, :on_change, &Radio.nop/2)
+    opts = Enum.into(opts, %{})
+    origin = Map.get(opts, :origin, {0, 0})
+    size = Map.get(opts, :size, {0, 0})
+    visible = Map.get(opts, :visible, true)
+    enabled = Map.get(opts, :enabled, true)
+    findex = Map.get(opts, :findex, 0)
+    theme = Map.get(opts, :theme, :default)
+    items = Map.get(opts, :items, [])
+    selected = Map.get(opts, :selected, 0)
+    on_change = Map.get(opts, :on_change, &Radio.nop/2)
 
     {count, map} = to_map(items)
 
@@ -34,6 +36,7 @@ defmodule Terminal.Radio do
       on_change: on_change
     }
 
+    state = recalc_selected(state)
     check(state)
   end
 
@@ -64,14 +67,15 @@ defmodule Terminal.Radio do
           {count, map} = to_map(items)
           props = Map.put(props, :map, map)
           props = Map.put(props, :count, count)
-          props = Map.put(props, :selected, 0)
+          props = Map.put_new(props, :selected, 0)
           %{props | items: items}
 
         _ ->
           props
       end
 
-    state = Map.merge(state, props)
+    state = Control.merge(state, props)
+    state = recalc_selected(state)
     check(state)
   end
 
@@ -181,6 +185,18 @@ defmodule Terminal.Radio do
       end
 
     canvas
+  end
+
+  defp recalc_selected(%{selected: selected, count: count} = state) do
+    selected =
+      case {count, selected < 0, selected >= count} do
+        {0, _, _} -> -1
+        {_, true, _} -> -1
+        {_, _, true} -> -1
+        _ -> selected
+      end
+
+    %{state | selected: selected}
   end
 
   defp trigger(state, selected) do

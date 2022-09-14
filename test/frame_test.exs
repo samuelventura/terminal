@@ -32,11 +32,13 @@ defmodule FrameTest do
     assert Frame.children(:state) == []
     assert Frame.children(:state, []) == :state
 
-    # react update
-    assert Frame.update(initial, text: "text") == %{initial | text: "text"}
+    # update
     assert Frame.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Frame.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
     assert Frame.update(initial, visible: false) == %{initial | visible: false}
+    assert Frame.update(initial, bracket: true) == %{initial | bracket: true}
+    assert Frame.update(initial, style: :double) == %{initial | style: :double}
+    assert Frame.update(initial, text: "text") == %{initial | text: "text"}
     assert Frame.update(initial, back: @red) == %{initial | back: @red}
     assert Frame.update(initial, fore: @red) == %{initial | fore: @red}
 

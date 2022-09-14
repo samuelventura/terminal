@@ -35,17 +35,19 @@ defmodule InputTest do
     assert Input.children(:state) == []
     assert Input.children(:state, []) == :state
 
-    # react update
+    # update
     on_change = fn value -> value end
-    assert Input.update(initial, focused: true) == initial
-    assert Input.update(initial, cursor: -1) == initial
-    assert Input.update(initial, visible: false) == %{initial | visible: false}
-    assert Input.update(initial, enabled: false) == %{initial | enabled: false}
-    assert Input.update(initial, password: true) == %{initial | password: true}
-    assert Input.update(initial, findex: 1) == %{initial | findex: 1}
-    assert Input.update(initial, theme: :theme) == %{initial | theme: :theme}
+    assert Input.update(initial, focused: :any) == initial
     assert Input.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}
     assert Input.update(initial, size: {2, 3}) == %{initial | size: {2, 3}}
+    assert Input.update(initial, visible: false) == %{initial | visible: false}
+    assert Input.update(initial, enabled: false) == %{initial | enabled: false}
+    assert Input.update(initial, findex: 1) == %{initial | findex: 1}
+    assert Input.update(initial, theme: :theme) == %{initial | theme: :theme}
+    assert Input.update(initial, password: true) == %{initial | password: true}
+    assert Input.update(initial, text: "text") == %{initial | text: "text", cursor: 4}
+    assert Input.update(initial, cursor: -1) == initial
+    assert Input.update(initial, cursor: 1) == initial
     assert Input.update(initial, on_change: on_change) == %{initial | on_change: on_change}
 
     # reset of calculated props

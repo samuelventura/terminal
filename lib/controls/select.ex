@@ -1,22 +1,24 @@
 defmodule Terminal.Select do
   @behaviour Terminal.Control
   use Terminal.Const
+  alias Terminal.Control
   alias Terminal.Check
   alias Terminal.Select
   alias Terminal.Canvas
   alias Terminal.Theme
 
   def init(opts \\ []) do
-    origin = Keyword.get(opts, :origin, {0, 0})
-    size = Keyword.get(opts, :size, {0, 0})
-    visible = Keyword.get(opts, :visible, true)
-    enabled = Keyword.get(opts, :enabled, true)
-    findex = Keyword.get(opts, :findex, 0)
-    theme = Keyword.get(opts, :theme, :default)
-    items = Keyword.get(opts, :items, [])
-    selected = Keyword.get(opts, :selected, 0)
-    offset = Keyword.get(opts, :offset, 0)
-    on_change = Keyword.get(opts, :on_change, &Select.nop/2)
+    opts = Enum.into(opts, %{})
+    origin = Map.get(opts, :origin, {0, 0})
+    size = Map.get(opts, :size, {0, 0})
+    visible = Map.get(opts, :visible, true)
+    enabled = Map.get(opts, :enabled, true)
+    findex = Map.get(opts, :findex, 0)
+    theme = Map.get(opts, :theme, :default)
+    items = Map.get(opts, :items, [])
+    selected = Map.get(opts, :selected, 0)
+    offset = Map.get(opts, :offset, 0)
+    on_change = Map.get(opts, :on_change, &Select.nop/2)
 
     {count, map} = to_map(items)
 
@@ -36,7 +38,7 @@ defmodule Terminal.Select do
       on_change: on_change
     }
 
-    state = offset_update(state)
+    state = recalc_offset(state)
     check(state)
   end
 
@@ -67,16 +69,16 @@ defmodule Terminal.Select do
           {count, map} = to_map(items)
           props = Map.put(props, :map, map)
           props = Map.put(props, :count, count)
-          props = Map.put(props, :selected, 0)
           props = Map.put(props, :offset, 0)
+          props = Map.put_new(props, :selected, 0)
           %{props | items: items}
 
         _ ->
           props
       end
 
-    state = Map.merge(state, props)
-    state = offset_update(state)
+    state = Control.merge(state, props)
+    state = recalc_offset(state)
     check(state)
   end
 
@@ -87,40 +89,40 @@ defmodule Terminal.Select do
     %{count: count, selected: selected} = state
     next = min(selected + 1, count - 1)
     state = %{state | selected: next}
-    offset_update(state, selected)
+    recalc_offset(state, selected)
   end
 
   def handle(state, {:key, _, @arrow_up}) do
     %{selected: selected} = state
     next = max(0, selected - 1)
     state = %{state | selected: next}
-    offset_update(state, selected)
+    recalc_offset(state, selected)
   end
 
   def handle(state, {:key, _, @page_down}) do
     %{count: count, selected: selected, size: {_, height}} = state
     next = min(selected + height, count - 1)
     state = %{state | selected: next}
-    offset_update(state, selected)
+    recalc_offset(state, selected)
   end
 
   def handle(state, {:key, _, @page_up}) do
     %{selected: selected, size: {_, height}} = state
     next = max(0, selected - height)
     state = %{state | selected: next}
-    offset_update(state, selected)
+    recalc_offset(state, selected)
   end
 
   def handle(state, {:key, _, @hend}) do
     %{count: count, selected: selected} = state
     state = %{state | selected: count - 1}
-    offset_update(state, selected)
+    recalc_offset(state, selected)
   end
 
   def handle(state, {:key, _, @home}) do
     %{selected: selected} = state
     state = %{state | selected: 0}
-    offset_update(state, selected)
+    recalc_offset(state, selected)
   end
 
   def handle(state, {:mouse, @wheel_up, _, _, @mouse_down}) do
@@ -135,7 +137,7 @@ defmodule Terminal.Select do
     %{count: count, selected: selected, offset: offset} = state
     next = min(count - 1, my + offset)
     state = %{state | selected: next}
-    offset_update(state, selected)
+    recalc_offset(state, selected)
   end
 
   def handle(state, {:key, @alt, "\t"}), do: {state, {:focus, :prev}}
@@ -192,8 +194,8 @@ defmodule Terminal.Select do
     end
   end
 
-  defp offset_update(state, selected) do
-    state = offset_update(state)
+  defp recalc_offset(state, selected) do
+    state = recalc_offset(state)
 
     case state.selected do
       ^selected -> {state, nil}
@@ -201,7 +203,7 @@ defmodule Terminal.Select do
     end
   end
 
-  defp offset_update(
+  defp recalc_offset(
          %{
            selected: selected,
            size: {_, height},

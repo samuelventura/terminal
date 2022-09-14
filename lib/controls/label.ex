@@ -1,18 +1,20 @@
 defmodule Terminal.Label do
   @behaviour Terminal.Control
+  alias Terminal.Control
   alias Terminal.Check
   alias Terminal.Canvas
   alias Terminal.Theme
 
   def init(opts \\ []) do
-    text = Keyword.get(opts, :text, "")
-    origin = Keyword.get(opts, :origin, {0, 0})
-    size = Keyword.get(opts, :size, {String.length(text), 1})
-    visible = Keyword.get(opts, :visible, true)
-    theme = Keyword.get(opts, :theme, :default)
+    opts = Enum.into(opts, %{})
+    text = Map.get(opts, :text, "")
+    origin = Map.get(opts, :origin, {0, 0})
+    size = Map.get(opts, :size, {String.length(text), 1})
+    visible = Map.get(opts, :visible, true)
+    theme = Map.get(opts, :theme, :default)
     theme = Theme.get(theme)
-    back = Keyword.get(opts, :back, theme.back_readonly)
-    fore = Keyword.get(opts, :fore, theme.fore_readonly)
+    back = Map.get(opts, :back, theme.back_readonly)
+    fore = Map.get(opts, :fore, theme.fore_readonly)
 
     state = %{
       origin: origin,
@@ -37,7 +39,7 @@ defmodule Terminal.Label do
 
   def update(state, props) do
     props = Enum.into(props, %{})
-    state = Map.merge(state, props)
+    state = Control.merge(state, props)
     check(state)
   end
 
