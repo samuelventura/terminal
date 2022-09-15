@@ -29,8 +29,10 @@ defmodule Terminal.React do
     inner = Parser.parse(inner)
 
     # flatten allows for nested children generators
+    # filter allow for removal of nil children
     quote do
       children = unquote(inner) |> List.flatten()
+      children = Enum.filter(children, fn child -> child != nil end)
       {unquote(key), unquote(module), unquote(props), children}
     end
   end
