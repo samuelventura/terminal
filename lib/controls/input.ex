@@ -185,16 +185,12 @@ defmodule Terminal.Input do
     dotted = empty && !focused && enabled
 
     canvas =
-      case {enabled, focused, dotted} do
-        {_, _, true} ->
-          canvas = Canvas.color(canvas, :fore, theme.fore_readonly)
-          Canvas.color(canvas, :back, theme.back_readonly)
-
-        {false, _, _} ->
+      case {enabled, focused} do
+        {false, _} ->
           canvas = Canvas.color(canvas, :fore, theme.fore_disabled)
           Canvas.color(canvas, :back, theme.back_disabled)
 
-        {true, true, _} ->
+        {true, true} ->
           canvas = Canvas.color(canvas, :fore, theme.fore_focused)
           Canvas.color(canvas, :back, theme.back_focused)
 
