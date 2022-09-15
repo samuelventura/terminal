@@ -42,6 +42,9 @@ Process.exit pid, :kill
 - Select and Radio items can be any datatype implementing String.Chars.
 - Exceptions in timeout/interval handlers should kill the application.
 - Cleanups should be idempotent.
+- Enter should navigate to next control for all controls except buttons.
+- Dialog buttons order should be accept then cancel to take advange of enter navigation.
+- Escape should close dialogs from any current focused control (shortcut).
 
 ## Future
 

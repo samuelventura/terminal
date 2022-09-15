@@ -52,6 +52,7 @@ defmodule Terminal.Radio do
   def focused(state, focused), do: %{state | focused: focused}
   def refocus(state, _), do: state
   def findex(%{findex: findex}), do: findex
+  def shortcut(_), do: nil
   def children(_), do: []
   def children(state, _), do: state
   def modal(_), do: false

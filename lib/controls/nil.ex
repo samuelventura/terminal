@@ -9,6 +9,7 @@ defmodule Terminal.Nil do
   def focused(_), do: false
   def refocus(_, _), do: nil
   def findex(_), do: -1
+  def shortcut(_), do: nil
   def children(_), do: []
   def children(_, _), do: nil
   def modal(_), do: false

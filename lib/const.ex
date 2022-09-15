@@ -1,6 +1,8 @@
 defmodule Terminal.Const do
   defmacro __using__(_) do
     quote do
+      @esc "\e"
+
       @ctl 1
       @alt 2
       @fun 4
@@ -66,6 +68,8 @@ defmodule Terminal.Const do
 
       @wheel_up 64
       @wheel_down 65
+
+      @shortcuts [@esc, @f1, @f2, @f3, @f4, @f5, @f6, @f7, @f8, @f9, @f10, @f11, @f12]
     end
   end
 end

@@ -65,17 +65,13 @@ defmodule Terminal.Code do
 
   # thinkpad/corsair usb us keyboard
   @escapes [
-    {"\e[[A", @f1},
-    {"\e[[B", @f2},
-    {"\e[[C", @f3},
-    {"\e[[D", @f4},
-    {"\e[[E", @f5},
-    {"\e[17~", @f6},
+    # working in linux
+    {"\eOQ", @f2},
+    {"\eOS", @f4},
     {"\e[18~", @f7},
     {"\e[19~", @f8},
     {"\e[20~", @f9},
     {"\e[21~", @f10},
-    {"\e[23~", @f11},
     {"\e[24~", @f12},
     {"\e[H", @home},
     {"\e[2~", @insert},
@@ -94,7 +90,13 @@ defmodule Terminal.Code do
     {"\e[1;2B", @page_down},
     # option + up/down
     {"\e[1;3A", @home},
-    {"\e[1;3B", @hend}
+    {"\e[1;3B", @hend},
+    # os/code traps these
+    {"\e[[A", @f1},
+    {"\e[[C", @f3},
+    {"\e[[E", @f5},
+    {"\e[17~", @f6},
+    {"\e[23~", @f11}
   ]
 
   @singles [

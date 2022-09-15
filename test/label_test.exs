@@ -28,6 +28,7 @@ defmodule LabelTest do
     assert Label.focused(%{}, true) == %{}
     assert Label.refocus(:state, :dir) == :state
     assert Label.findex(%{findex: 0}) == -1
+    assert Label.shortcut(:state) == nil
     assert Label.children(:state) == []
     assert Label.children(:state, []) == :state
     assert Label.modal(:state) == false

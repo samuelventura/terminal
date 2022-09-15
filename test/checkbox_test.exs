@@ -32,6 +32,7 @@ defmodule CheckboxTest do
     assert Checkbox.focused(initial, true) == %{initial | focused: true}
     assert Checkbox.refocus(:state, :dir) == :state
     assert Checkbox.findex(%{findex: 0}) == 0
+    assert Checkbox.shortcut(:state) == nil
     assert Checkbox.children(:state) == []
     assert Checkbox.children(:state, []) == :state
     assert Checkbox.modal(:state) == false

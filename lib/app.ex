@@ -1,4 +1,5 @@
 defmodule Terminal.App do
+  use Terminal.Const
   alias Terminal.Canvas
   alias Terminal.Control
   alias Terminal.State
@@ -118,7 +119,20 @@ defmodule Terminal.App do
     exec_cleanups(tail)
   end
 
-  defp mote_handle(react, {module, state}, event) do
+  defp is_shortcut({:key, _, key}), do: {Enum.member?(@shortcuts, key), key}
+  defp is_shortcut(_), do: false
+
+  defp mote_handle(react, mote, event) do
+    case is_shortcut(event) do
+      {true, shortcut} ->
+        mote_handle(react, mote, {:shortcut, shortcut})
+
+      _ ->
+        event_handle(react, mote, event)
+    end
+  end
+
+  defp event_handle(react, {module, state}, event) do
     key = State.get_modal(react)
 
     event =

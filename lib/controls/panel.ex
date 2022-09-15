@@ -35,6 +35,7 @@ defmodule Terminal.Panel do
   def focused(state, focused), do: Map.put(state, :focused, focused)
   def refocus(state, dir), do: recalculate(state, dir)
   def findex(%{findex: findex}), do: findex
+  def shortcut(_), do: nil
   def modal(%{root: root}), do: root
 
   # ignore modals
@@ -131,6 +132,19 @@ defmodule Terminal.Panel do
           child_event(state, mote, event)
       end
     end)
+  end
+
+  # shortcuts are broadcasted without focus pre-assigment
+  def handle(%{index: index, children: children} = state, {:shortcut, _} = event) do
+    Enum.each(index, fn id ->
+      mote = Map.get(children, id)
+
+      if mote_focusable(mote) do
+        mote_handle(mote, event)
+      end
+    end)
+
+    {state, nil}
   end
 
   def handle(state, _event), do: {state, nil}

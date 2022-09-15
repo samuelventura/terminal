@@ -16,6 +16,7 @@ defmodule Terminal.Button do
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
     theme = Map.get(opts, :theme, :default)
+    shortcut = Map.get(opts, :shortcut, nil)
     on_click = Map.get(opts, :on_click, &Button.nop/0)
 
     state = %{
@@ -27,6 +28,7 @@ defmodule Terminal.Button do
       findex: findex,
       theme: theme,
       text: text,
+      shortcut: shortcut,
       on_click: on_click
     }
 
@@ -45,6 +47,7 @@ defmodule Terminal.Button do
   def focused(state, focused), do: %{state | focused: focused}
   def refocus(state, _), do: state
   def findex(%{findex: findex}), do: findex
+  def shortcut(%{shortcut: shortcut}), do: shortcut
   def children(_), do: []
   def children(state, _), do: state
   def modal(_), do: false
@@ -68,6 +71,7 @@ defmodule Terminal.Button do
   def handle(state, {:mouse, @wheel_up, _, _, _}), do: {state, nil}
   def handle(state, {:mouse, @wheel_down, _, _, _}), do: {state, nil}
   def handle(state, {:mouse, _, _, _, @mouse_down}), do: trigger(state)
+  def handle(%{shortcut: shortcut} = state, {:shortcut, shortcut}), do: trigger(state)
   def handle(state, _event), do: {state, nil}
 
   def render(state, canvas) do
@@ -118,6 +122,8 @@ defmodule Terminal.Button do
     Check.assert_gte(:findex, state.findex, -1)
     Check.assert_atom(:theme, state.theme)
     Check.assert_string(:text, state.text)
+    shortcuts = [nil | @shortcuts]
+    Check.assert_in_list(:shortcut, state.shortcut, shortcuts)
     Check.assert_function(:on_click, state.on_click, 0)
     state
   end

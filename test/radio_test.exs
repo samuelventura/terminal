@@ -34,6 +34,7 @@ defmodule RadioTest do
     assert Radio.focused(initial, true) == %{initial | focused: true}
     assert Radio.refocus(:state, :dir) == :state
     assert Radio.findex(%{findex: 0}) == 0
+    assert Radio.shortcut(:state) == nil
     assert Radio.children(:state) == []
     assert Radio.children(:state, []) == :state
     assert Radio.modal(:state) == false

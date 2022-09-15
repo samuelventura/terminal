@@ -17,6 +17,7 @@ defmodule Terminal.State do
           preffects: %{},
           preieffects: [],
           ceffects: %{},
+          shortcut: %{},
           timers: %{},
           timerc: 0,
           modal: nil
@@ -104,6 +105,7 @@ defmodule Terminal.State do
           preffects: map.effects,
           preieffects: map.ieffects,
           ceffects: map.ceffects,
+          shortcut: %{},
           timers: map.timers,
           timerc: map.timerc,
           modal: nil

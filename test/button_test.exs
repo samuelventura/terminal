@@ -16,6 +16,7 @@ defmodule ButtonTest do
              findex: 0,
              theme: :default,
              text: "",
+             shortcut: nil,
              on_click: &Button.nop/0
            }
 
@@ -31,6 +32,7 @@ defmodule ButtonTest do
     assert Button.focused(initial, true) == %{initial | focused: true}
     assert Button.refocus(:state, :dir) == :state
     assert Button.findex(%{findex: 0}) == 0
+    assert Button.shortcut(%{shortcut: :shortcut}) == :shortcut
     assert Button.children(:state) == []
     assert Button.children(:state, []) == :state
     assert Button.modal(:state) == false
@@ -45,6 +47,7 @@ defmodule ButtonTest do
     assert Button.update(initial, findex: -1) == %{initial | findex: -1}
     assert Button.update(initial, theme: :theme) == %{initial | theme: :theme}
     assert Button.update(initial, text: "text") == %{initial | text: "text"}
+    assert Button.update(initial, shortcut: @esc) == %{initial | shortcut: @esc}
     assert Button.update(initial, on_click: on_click) == %{initial | on_click: on_click}
     assert Button.update(initial, on_click: nil) == initial
 
@@ -65,6 +68,9 @@ defmodule ButtonTest do
 
     assert Button.handle(%{on_click: on_click}, {:mouse, :any, :any, :any, @mouse_down}) ==
              {%{on_click: on_click}, {:click, :click}}
+
+    assert Button.handle(%{on_click: on_click, shortcut: :shortcut}, {:shortcut, :shortcut}) ==
+             {%{on_click: on_click, shortcut: :shortcut}, {:click, :click}}
 
     # nops
     assert Button.handle(%{}, :any) == {%{}, nil}

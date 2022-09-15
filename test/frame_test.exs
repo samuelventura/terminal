@@ -30,6 +30,7 @@ defmodule FrameTest do
     assert Frame.focused(%{}, true) == %{}
     assert Frame.refocus(:state, :dir) == :state
     assert Frame.findex(%{findex: 0}) == -1
+    assert Frame.shortcut(:state) == nil
     assert Frame.children(:state) == []
     assert Frame.children(:state, []) == :state
     assert Frame.modal(:state) == false

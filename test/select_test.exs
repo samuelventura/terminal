@@ -35,6 +35,7 @@ defmodule SelectTest do
     assert Select.focused(initial, true) == %{initial | focused: true}
     assert Select.refocus(:state, :dir) == :state
     assert Select.findex(%{findex: 0}) == 0
+    assert Select.shortcut(:state) == nil
     assert Select.children(:state) == []
     assert Select.children(:state, []) == :state
     assert Select.modal(:state) == false

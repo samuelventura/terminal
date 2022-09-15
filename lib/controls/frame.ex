@@ -39,6 +39,7 @@ defmodule Terminal.Frame do
   def focused(state, _), do: state
   def refocus(state, _), do: state
   def findex(_), do: -1
+  def shortcut(_), do: nil
   def children(_), do: []
   def children(state, _), do: state
   def modal(_), do: false

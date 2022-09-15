@@ -29,11 +29,13 @@ defmodule PanelTest do
     assert Panel.focusable(%{enabled: false}) == false
     assert Panel.focusable(%{visible: false}) == false
     assert Panel.focusable(%{findex: -1}) == false
+    assert Panel.focusable(Panel.init(root: true)) == false
     assert Panel.focused(%{focused: false}) == false
     assert Panel.focused(%{focused: true}) == true
     assert Panel.focused(initial, true) == %{initial | focused: true}
     assert Panel.refocus(initial, :any) == initial
     assert Panel.findex(%{findex: 0}) == 0
+    assert Panel.shortcut(:state) == nil
     assert Panel.children(initial) == []
     assert Panel.children(initial, []) == initial
     children = [{0, Panel.init()}, {1, Panel.init()}]

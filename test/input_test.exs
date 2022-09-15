@@ -33,6 +33,7 @@ defmodule InputTest do
     assert Input.focused(initial, true) == %{initial | focused: true}
     assert Input.refocus(:state, :dir) == :state
     assert Input.findex(%{findex: 0}) == 0
+    assert Input.shortcut(:state) == nil
     assert Input.children(:state) == []
     assert Input.children(:state, []) == :state
     assert Input.modal(:state) == false
