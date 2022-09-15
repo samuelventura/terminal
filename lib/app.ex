@@ -2,6 +2,7 @@ defmodule Terminal.App do
   alias Terminal.Control
   alias Terminal.State
   alias Terminal.App
+  alias Terminal.Nil
 
   defmacro __using__(_opts) do
     quote do
@@ -103,11 +104,19 @@ defmodule Terminal.App do
     cond do
       is_function(modfun) ->
         opts = Enum.into(opts, %{})
-        {_, modfun, opts, inner} = modfun.(react, opts)
+        res = eval(react, modfun, opts)
+        {_, modfun, opts, inner} = res
         eval(react, {modfun, opts, inner})
 
       is_atom(modfun) ->
         {modfun, opts, inner}
+    end
+  end
+
+  defp eval(react, modfun, opts) do
+    case modfun.(react, opts) do
+      nil -> {nil, Nil, [], []}
+      res -> res
     end
   end
 
