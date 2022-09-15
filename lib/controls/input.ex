@@ -85,6 +85,8 @@ defmodule Terminal.Input do
   def handle(state, {:key, _, "\r"}), do: {state, {:focus, :next}}
   def handle(state, {:mouse, @wheel_up, _, _, _}), do: {state, nil}
   def handle(state, {:mouse, @wheel_down, _, _, _}), do: {state, nil}
+  # injecting escapes breaks rendering
+  def handle(state, {:key, _, "\e"}), do: {state, nil}
 
   def handle(%{cursor: cursor} = state, {:key, _, @arrow_left}) do
     cursor = if cursor > 0, do: cursor - 1, else: cursor
