@@ -71,6 +71,7 @@ defmodule Terminal.Input do
           props
       end
 
+    props = Control.coalesce(props, :on_change, &Input.nop/1)
     state = Control.merge(state, props)
     check(state)
   end

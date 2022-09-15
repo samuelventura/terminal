@@ -45,6 +45,7 @@ defmodule ButtonTest do
     assert Button.update(initial, theme: :theme) == %{initial | theme: :theme}
     assert Button.update(initial, text: "text") == %{initial | text: "text"}
     assert Button.update(initial, on_click: on_click) == %{initial | on_click: on_click}
+    assert Button.update(initial, on_click: nil) == initial
 
     # navigation
     assert Button.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
@@ -56,10 +57,10 @@ defmodule ButtonTest do
 
     # triggers
     assert Button.handle(%{on_click: on_click}, {:key, :any, "\r"}) ==
-             {%{on_click: on_click}, :click}
+             {%{on_click: on_click}, {:click, :click}}
 
     assert Button.handle(%{on_click: on_click}, {:mouse, :any, :any, :any, @mouse_down}) ==
-             {%{on_click: on_click}, :click}
+             {%{on_click: on_click}, {:click, :click}}
 
     # nops
     assert Button.handle(%{}, :any) == {%{}, nil}

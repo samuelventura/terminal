@@ -47,6 +47,7 @@ defmodule CheckboxTest do
     assert Checkbox.update(initial, text: "text") == %{initial | text: "text"}
     assert Checkbox.update(initial, checked: true) == %{initial | checked: true}
     assert Checkbox.update(initial, on_change: on_change) == %{initial | on_change: on_change}
+    assert Checkbox.update(initial, on_change: nil) == initial
 
     # navigation
     assert Checkbox.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
@@ -59,17 +60,17 @@ defmodule CheckboxTest do
 
     # triggers
     assert Checkbox.handle(%{on_change: on_change, checked: false}, {:key, :any, " "}) ==
-             {%{on_change: on_change, checked: true}, true}
+             {%{on_change: on_change, checked: true}, {:checked, true, true}}
 
     assert Checkbox.handle(
              %{on_change: on_change, checked: false},
              {:mouse, :any, :any, :any, @mouse_down}
            ) ==
-             {%{on_change: on_change, checked: true}, true}
+             {%{on_change: on_change, checked: true}, {:checked, true, true}}
 
     # retriggers
     assert Checkbox.handle(%{on_change: on_change, checked: true}, {:key, @alt, "\r"}) ==
-             {%{on_change: on_change, checked: true}, true}
+             {%{on_change: on_change, checked: true}, {:checked, true, true}}
 
     # nops
     assert Checkbox.handle(%{}, :any) == {%{}, nil}

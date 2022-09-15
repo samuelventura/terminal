@@ -1,4 +1,5 @@
 defmodule Terminal.App do
+  alias Terminal.Control
   alias Terminal.State
   alias Terminal.App
 
@@ -48,7 +49,7 @@ defmodule Terminal.App do
       end
 
     State.reset_state(react)
-    map = mote_to_map(mote, [key], %{})
+    map = Control.tree(mote, [key], %{})
     exec_realize(react, func, opts, map)
   end
 
@@ -91,15 +92,6 @@ defmodule Terminal.App do
     {_key, cleanup} = cleanup
     cleanup.()
     exec_cleanups(tail)
-  end
-
-  defp mote_to_map({module, state}, keys, map) do
-    map =
-      for {key, mote} <- module.children(state), reduce: map do
-        map -> mote_to_map(mote, [key | keys], map)
-      end
-
-    Map.put(map, keys, {module, state})
   end
 
   defp mote_handle({module, state}, event) do

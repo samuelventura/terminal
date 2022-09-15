@@ -20,7 +20,7 @@ defmodule Terminal.Select do
     offset = Map.get(opts, :offset, 0)
     on_change = Map.get(opts, :on_change, &Select.nop/2)
 
-    {count, map} = to_map(items)
+    {count, map} = internals(items)
 
     state = %{
       focused: false,
@@ -38,7 +38,7 @@ defmodule Terminal.Select do
       on_change: on_change
     }
 
-    state = recalc_offset(state)
+    state = recalculate(state)
     check(state)
   end
 
@@ -67,7 +67,7 @@ defmodule Terminal.Select do
           props
 
         %{items: items} ->
-          {count, map} = to_map(items)
+          {count, map} = internals(items)
           props = Map.put(props, :map, map)
           props = Map.put(props, :count, count)
           props = Map.put(props, :offset, 0)
@@ -78,8 +78,9 @@ defmodule Terminal.Select do
           props
       end
 
+    props = Control.coalesce(props, :on_change, &Select.nop/2)
     state = Control.merge(state, props)
-    state = recalc_offset(state)
+    state = recalculate(state)
     check(state)
   end
 
@@ -187,7 +188,7 @@ defmodule Terminal.Select do
     end
   end
 
-  defp recalc_offset(
+  defp recalculate(
          %{
            selected: selected,
            size: {_, height},
@@ -197,9 +198,11 @@ defmodule Terminal.Select do
        ) do
     selected = if selected < 0, do: -1, else: selected
     selected = if selected >= count, do: -1, else: selected
+    selected = if count > 0, do: selected, else: -1
 
     offsel = max(0, selected)
-    offmin = max(0, offsel - height + 1)
+    offhei = max(1, height)
+    offmin = max(0, offsel - offhei + 1)
     offset = if offset < offmin, do: offmin, else: offset
     offset = if offset > offsel, do: offsel, else: offset
 
@@ -208,7 +211,7 @@ defmodule Terminal.Select do
 
   defp trigger(state, next, selected) do
     state = %{state | selected: next}
-    state = recalc_offset(state)
+    state = recalculate(state)
 
     case state.selected do
       ^selected -> {state, nil}
@@ -222,7 +225,7 @@ defmodule Terminal.Select do
     {:item, selected, item, resp}
   end
 
-  defp to_map(map) do
+  defp internals(map) do
     for item <- map, reduce: {0, %{}} do
       {count, map} ->
         {count + 1, Map.put(map, count, item)}

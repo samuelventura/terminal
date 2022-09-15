@@ -19,7 +19,7 @@ defmodule Terminal.Radio do
     selected = Map.get(opts, :selected, 0)
     on_change = Map.get(opts, :on_change, &Radio.nop/2)
 
-    {count, map} = to_map(items)
+    {count, map} = internals(items)
 
     state = %{
       focused: false,
@@ -36,7 +36,7 @@ defmodule Terminal.Radio do
       on_change: on_change
     }
 
-    state = recalc_selected(state)
+    state = recalculate(state)
     check(state)
   end
 
@@ -65,7 +65,7 @@ defmodule Terminal.Radio do
           props
 
         %{items: items} ->
-          {count, map} = to_map(items)
+          {count, map} = internals(items)
           props = Map.put(props, :map, map)
           props = Map.put(props, :count, count)
           props = Map.put_new(props, :selected, 0)
@@ -75,8 +75,9 @@ defmodule Terminal.Radio do
           props
       end
 
+    props = Control.coalesce(props, :on_change, &Radio.nop/2)
     state = Control.merge(state, props)
-    state = recalc_selected(state)
+    state = recalculate(state)
     check(state)
   end
 
@@ -194,7 +195,7 @@ defmodule Terminal.Radio do
     canvas
   end
 
-  defp recalc_selected(%{selected: selected, count: count} = state) do
+  defp recalculate(%{selected: selected, count: count} = state) do
     selected =
       case {count, selected < 0, selected >= count} do
         {0, _, _} -> -1
@@ -221,7 +222,7 @@ defmodule Terminal.Radio do
     {:item, selected, item, resp}
   end
 
-  defp to_map(map) do
+  defp internals(map) do
     for item <- map, reduce: {0, %{}} do
       {count, map} ->
         {count + 1, Map.put(map, count, item)}

@@ -47,50 +47,13 @@ defmodule SelectTest do
     assert Select.update(initial, enabled: false) == %{initial | enabled: false}
     assert Select.update(initial, findex: 1) == %{initial | findex: 1}
     assert Select.update(initial, theme: :theme) == %{initial | theme: :theme}
+    assert Select.update(initial, items: []) == initial
     assert Select.update(initial, selected: 0) == initial
     assert Select.update(initial, count: -1) == initial
     assert Select.update(initial, map: :map) == initial
     assert Select.update(initial, offset: -1) == initial
     assert Select.update(initial, on_change: on_change) == %{initial | on_change: on_change}
-
-    # update items
-    assert Select.update(initial, items: [:item0, :item1]) == %{
-             initial
-             | items: [:item0, :item1],
-               selected: 0,
-               count: 2,
-               map: %{0 => :item0, 1 => :item1}
-           }
-
-    # update items + selected
-    assert Select.update(initial, items: [:item0, :item1], selected: 1) == %{
-             initial
-             | items: [:item0, :item1],
-               selected: 1,
-               offset: 1,
-               count: 2,
-               map: %{0 => :item0, 1 => :item1}
-           }
-
-    # update selected + items
-    assert Select.update(initial, selected: 1, items: [:item0, :item1]) == %{
-             initial
-             | items: [:item0, :item1],
-               selected: 1,
-               offset: 1,
-               count: 2,
-               map: %{0 => :item0, 1 => :item1}
-           }
-
-    # recalc
-    assert Select.update(%{initial | selected: 1, offset: 2}, items: [:item0, :item1]) == %{
-             initial
-             | items: [:item0, :item1],
-               selected: 0,
-               offset: 0,
-               count: 2,
-               map: %{0 => :item0, 1 => :item1}
-           }
+    assert Select.update(initial, on_change: nil) == initial
 
     # navigation
     assert Select.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
@@ -162,6 +125,8 @@ defmodule SelectTest do
     assert Select.handle(sample, {:mouse, :any, :any, 3, @mouse_down}) ==
              {sample, nil}
 
+    # recalculate
+
     # offset (any key/mouse should correct it)
     assert Select.handle(%{sample | selected: -1}, {:key, :any, @arrow_up}) ==
              {sample, {:item, 0, :item0, {0, :item0}}}
@@ -170,5 +135,44 @@ defmodule SelectTest do
              {sample, {:item, 0, :item0, {0, :item0}}}
 
     assert Select.update(%{sample | selected: -1}, selected: 0) == sample
+
+    # update items
+    assert Select.update(initial, items: [:item0, :item1]) == %{
+             initial
+             | items: [:item0, :item1],
+               selected: 0,
+               count: 2,
+               map: %{0 => :item0, 1 => :item1}
+           }
+
+    # update items + selected
+    assert Select.update(initial, items: [:item0, :item1], selected: 1) == %{
+             initial
+             | items: [:item0, :item1],
+               selected: 1,
+               offset: 1,
+               count: 2,
+               map: %{0 => :item0, 1 => :item1}
+           }
+
+    # update selected + items
+    assert Select.update(initial, selected: 1, items: [:item0, :item1]) == %{
+             initial
+             | items: [:item0, :item1],
+               selected: 1,
+               offset: 1,
+               count: 2,
+               map: %{0 => :item0, 1 => :item1}
+           }
+
+    # update items with invalid offset
+    assert Select.update(%{initial | selected: 1, offset: 2}, items: [:item0, :item1]) == %{
+             initial
+             | items: [:item0, :item1],
+               selected: 0,
+               offset: 0,
+               count: 2,
+               map: %{0 => :item0, 1 => :item1}
+           }
   end
 end

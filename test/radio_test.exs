@@ -50,6 +50,7 @@ defmodule RadioTest do
     assert Radio.update(initial, count: -1) == initial
     assert Radio.update(initial, map: :map) == initial
     assert Radio.update(initial, on_change: on_change) == %{initial | on_change: on_change}
+    assert Radio.update(initial, on_change: nil) == initial
 
     # update items
     assert Radio.update(initial, items: [:item0, :item1]) == %{
@@ -143,6 +144,8 @@ defmodule RadioTest do
 
     assert Radio.handle(%{sample | selected: 2}, {:mouse, :any, 5, :any, @mouse_down}) ==
              {%{sample | selected: 2}, nil}
+
+    # recalculate
 
     # offset (any key/mouse should correct it)
     assert Radio.handle(%{sample | selected: -1}, {:key, :any, @arrow_left}) ==

@@ -33,8 +33,19 @@ defmodule Terminal.Panel do
   def visible(%{visible: visible}), do: visible
   def focused(%{focused: focused}), do: focused
   def focused(state, focused), do: Map.put(state, :focused, focused)
-  def refocus(state, dir), do: focus_update(state, dir)
+  def refocus(state, dir), do: recalculate(state, dir)
   def findex(%{findex: findex}), do: findex
+
+  def focusable(%{enabled: false}), do: false
+  def focusable(%{visible: false}), do: false
+  def focusable(%{findex: findex}), do: findex >= 0
+
+  def focusable(%{children: children, index: index}) do
+    Enum.find_value(index, false, fn id ->
+      mote = Map.get(children, id)
+      mote_focusable(mote)
+    end)
+  end
 
   def children(%{index: index, children: children}) do
     for id <- index, reduce: [] do
@@ -52,26 +63,15 @@ defmodule Terminal.Panel do
 
     state = Map.put(state, :children, children)
     state = Map.put(state, :index, index)
-    focus_update(state)
+    recalculate(state, :next)
   end
 
   def update(state, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:root, :children, :focus, :index, :focused])
     state = Control.merge(state, props)
-    state = focus_update(state)
+    state = recalculate(state, :next)
     check(state)
-  end
-
-  def focusable(%{enabled: false}), do: false
-  def focusable(%{visible: false}), do: false
-  def focusable(%{findex: findex}), do: findex >= 0
-
-  def focusable(%{children: children, index: index}) do
-    Enum.find_value(index, false, fn id ->
-      mote = Map.get(children, id)
-      mote_focusable(mote)
-    end)
   end
 
   def handle(%{focus: nil} = state, {:key, _, _}), do: {state, nil}
@@ -82,14 +82,18 @@ defmodule Terminal.Panel do
     child_event(state, mote, event)
   end
 
-  def handle(%{index: index, children: children, focus: focus} = state, {:mouse, s, mx, my, a}) do
+  # controls get focused before receiving a mouse event
+  # unless the root panel has no focusable children at all
+  def handle(%{focus: nil} = state, {:mouse, _, _, _, _}), do: {state, nil}
+
+  def handle(%{focus: focus, index: index, children: children} = state, {:mouse, s, mx, my, a}) do
     Enum.find_value(index, {state, nil}, fn id ->
       mote = Map.get(children, id)
       focusable = mote_focusable(mote)
       bounds = mote_bounds(mote)
-      delta = in_bounds(bounds, mx, my)
+      client = toclient(bounds, mx, my)
 
-      case {focusable, delta, focus} do
+      case {focusable, client, focus} do
         {false, _, _} ->
           false
 
@@ -122,10 +126,75 @@ defmodule Terminal.Panel do
     end
   end
 
-  defp in_bounds({x, y, w, h}, mx, my) do
-    case mx >= x && mx < x + w && my >= y && my < y + h do
-      false -> false
-      true -> {mx - x, my - y}
+  # assumes no child other than the pointed
+  # by the focus key will be ever focused
+  # no attempt is made to unfocus every children
+  defp recalculate(state, dir) do
+    %{
+      visible: visible,
+      enabled: enabled,
+      focused: focused,
+      findex: findex,
+      focus: focus
+    } = state
+
+    expected = visible && enabled && focused && findex >= 0
+
+    # try to recover the current focus key
+    # returning nil if not recoverable
+    {state, focus} =
+      case focus do
+        nil ->
+          {state, nil}
+
+        _ ->
+          case get_child(state, focus) do
+            nil ->
+              state = Map.put(state, :focus, nil)
+              {state, nil}
+
+            mote ->
+              focused = mote_focused(mote)
+              focusable = mote_focusable(mote)
+
+              case {focusable && expected, focused} do
+                {false, false} ->
+                  state = Map.put(state, :focus, nil)
+                  {state, nil}
+
+                {false, true} ->
+                  mote = mote_focused(mote, false, dir)
+                  state = put_child(state, focus, mote)
+                  state = Map.put(state, :focus, nil)
+                  {state, nil}
+
+                {true, false} ->
+                  mote = mote_focused(mote, true, dir)
+                  state = put_child(state, focus, mote)
+                  {state, focus}
+
+                {true, true} ->
+                  {state, focus}
+              end
+          end
+      end
+
+    # try to initialize the focus key if nil
+    case {expected, focus} do
+      {true, nil} ->
+        case focus_list(state, dir) do
+          [] ->
+            state
+
+          [focus | _] ->
+            mote = get_child(state, focus)
+            mote = mote_focused(mote, true, dir)
+            state = put_child(state, focus, mote)
+            Map.put(state, :focus, focus)
+        end
+
+      _ ->
+        state
     end
   end
 
@@ -171,111 +240,46 @@ defmodule Terminal.Panel do
 
       [first | _] ->
         {next, _} =
-          for id <- index, reduce: {nil, false} do
-            {nil, true} ->
-              {id, true}
-
-            {next, true} ->
-              {next, true}
-
-            {_, false} ->
-              case id do
-                ^focus -> {nil, true}
-                _ -> {nil, false}
-              end
-          end
+          Enum.reduce_while(index, {nil, nil}, fn id, {_, prev} ->
+            case {focus == id, focus == prev} do
+              {true, _} -> {:cont, {nil, id}}
+              {_, true} -> {:halt, {id, nil}}
+              _ -> {:cont, {nil, nil}}
+            end
+          end)
 
         {first, next}
     end
   end
 
-  defp focus_list(state, :prev) do
-    index = focus_list(state, :next)
+  defp focus_list(state, :next) do
+    index = focus_list(state, :prev)
     Enum.reverse(index)
   end
 
-  defp focus_list(state, :next) do
+  defp focus_list(state, :prev) do
     %{index: index} = state
     index = Enum.filter(index, &child_focusable(state, &1))
-    index = Enum.reverse(index)
     Enum.sort(index, &focus_compare(state, &1, &2))
   end
 
   defp focus_compare(state, id1, id2) do
     fi1 = child_findex(state, id1)
     fi2 = child_findex(state, id2)
-    fi1 <= fi2
-  end
-
-  defp focus_update(state, dir \\ :next) do
-    %{
-      visible: visible,
-      enabled: enabled,
-      focused: focused,
-      focus: focus
-    } = state
-
-    expected = visible && enabled && focused
-
-    {state, focus} =
-      case focus do
-        nil ->
-          {state, nil}
-
-        _ ->
-          case get_child(state, focus) do
-            nil ->
-              state = Map.put(state, :focus, nil)
-              {state, nil}
-
-            mote ->
-              focused = mote_focused(mote)
-              focusable = mote_focusable(mote)
-
-              case {focusable && expected, focused} do
-                {false, false} ->
-                  state = Map.put(state, :focus, nil)
-                  {state, nil}
-
-                {false, true} ->
-                  mote = mote_focused(mote, false, dir)
-                  state = put_child(state, focus, mote)
-                  state = Map.put(state, :focus, nil)
-                  {state, nil}
-
-                {true, false} ->
-                  mote = mote_focused(mote, true, dir)
-                  state = put_child(state, focus, mote)
-                  {state, focus}
-
-                {true, true} ->
-                  {state, focus}
-              end
-          end
-      end
-
-    case {expected, focus} do
-      {true, nil} ->
-        case focus_list(state, dir) do
-          [] ->
-            state
-
-          [focus | _] ->
-            mote = get_child(state, focus)
-            mote = mote_focused(mote, true, dir)
-            state = put_child(state, focus, mote)
-            Map.put(state, :focus, focus)
-        end
-
-      _ ->
-        state
-    end
+    fi1 >= fi2
   end
 
   defp unfocus(%{focus: focus} = state) do
     mote = get_child(state, focus)
     mote = mote_focused(mote, false, :next)
     put_child(state, focus, mote)
+  end
+
+  defp toclient({x, y, w, h}, mx, my) do
+    case mx >= x && mx < x + w && my >= y && my < y + h do
+      false -> false
+      true -> {mx - x, my - y}
+    end
   end
 
   defp get_child(state, id), do: get_in(state, [:children, id])

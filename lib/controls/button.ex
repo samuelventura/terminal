@@ -51,6 +51,7 @@ defmodule Terminal.Button do
   def update(state, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:focused])
+    props = Control.coalesce(props, :on_click, &Button.nop/0)
     state = Control.merge(state, props)
     check(state)
   end
@@ -103,7 +104,7 @@ defmodule Terminal.Button do
   end
 
   defp trigger(%{on_click: on_click} = state) do
-    {state, on_click.()}
+    {state, {:click, on_click.()}}
   end
 
   defp check(state) do

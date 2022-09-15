@@ -53,6 +53,7 @@ defmodule Terminal.Checkbox do
   def update(state, props) do
     props = Enum.into(props, %{})
     props = Map.drop(props, [:focused])
+    props = Control.coalesce(props, :on_change, &Checkbox.nop/1)
     state = Control.merge(state, props)
     check(state)
   end
@@ -107,12 +108,13 @@ defmodule Terminal.Checkbox do
   end
 
   defp retrigger(%{on_change: on_change, checked: checked} = state) do
-    {state, on_change.(checked)}
+    {state, {:checked, checked, on_change.(checked)}}
   end
 
   defp trigger(%{on_change: on_change, checked: checked} = state) do
-    state = Map.put(state, :checked, !checked)
-    {state, on_change.(!checked)}
+    checked = !checked
+    state = Map.put(state, :checked, checked)
+    {state, {:checked, checked, on_change.(checked)}}
   end
 
   defp check(state) do

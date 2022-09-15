@@ -52,6 +52,7 @@ defmodule InputTest do
     assert Input.update(initial, cursor: -1) == initial
     assert Input.update(initial, cursor: 1) == initial
     assert Input.update(initial, on_change: on_change) == %{initial | on_change: on_change}
+    assert Input.update(initial, on_change: nil) == initial
 
     # navigation
     assert Input.handle(%{}, {:key, :any, "\t"}) == {%{}, {:focus, :next}}
