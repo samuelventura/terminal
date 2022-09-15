@@ -17,7 +17,6 @@ defmodule PanelTest do
              visible: true,
              enabled: true,
              findex: 0,
-             modal: false,
              root: false,
              index: [],
              children: %{},
@@ -39,6 +38,7 @@ defmodule PanelTest do
     assert Panel.children(initial, []) == initial
     children = [{0, Panel.init()}, {1, Panel.init()}]
     assert Panel.children(Panel.children(initial, children)) == children
+    assert Panel.modal(initial) == false
 
     # update
     assert Panel.update(initial, focused: :any) == initial
@@ -67,7 +67,7 @@ defmodule PanelTest do
     {^panel, nil} = Panel.handle(panel, {:mouse, :any, 0, 0, @mouse_down})
 
     panel = Panel.children(root, c0: Control.init(Button))
-    {^panel, {:focus, :next}} = Panel.handle(panel, {:key, :any, "\t"})
+    {^panel, nil} = Panel.handle(panel, {:key, :any, "\t"})
     {^panel, {:c0, {:click, nil}}} = Panel.handle(panel, {:key, :any, "\r"})
 
     panel = Panel.children(root, c0: Control.init(Button, size: {1, 1}))
@@ -98,7 +98,7 @@ defmodule PanelTest do
     # keys get to nested focused control
     panel = Panel.children(normal, c0: Control.init(Button))
     panel = Panel.children(root, p0: {Panel, panel})
-    {^panel, {:focus, :next}} = Panel.handle(panel, {:key, :any, "\t"})
+    {^panel, nil} = Panel.handle(panel, {:key, :any, "\t"})
     {^panel, {:p0, {:c0, {:click, nil}}}} = Panel.handle(panel, {:key, :any, "\r"})
 
     # mouse gets to nested focused control

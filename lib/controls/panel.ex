@@ -12,16 +12,14 @@ defmodule Terminal.Panel do
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
     root = Map.get(opts, :root, false)
-    modal = Map.get(opts, :modal, false)
 
     state = %{
-      focused: root or modal,
+      focused: root,
       origin: origin,
       size: size,
       visible: visible,
       enabled: enabled,
       findex: findex,
-      modal: modal,
       root: root,
       index: [],
       children: %{},
@@ -37,11 +35,13 @@ defmodule Terminal.Panel do
   def focused(state, focused), do: Map.put(state, :focused, focused)
   def refocus(state, dir), do: recalculate(state, dir)
   def findex(%{findex: findex}), do: findex
-  def modal(%{modal: modal}), do: modal
+  def modal(%{root: root}), do: root
 
+  # ignore modals
+  def focusable(%{root: true}), do: false
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
-  def focusable(%{findex: findex}), do: findex >= 0
+  def focusable(%{findex: findex}) when findex < 0, do: false
 
   def focusable(%{children: children, index: index}) do
     Enum.find_value(index, false, fn id ->
@@ -60,6 +60,7 @@ defmodule Terminal.Panel do
     {index, children} =
       for {id, child} <- children, reduce: {[], %{}} do
         {index, map} ->
+          if id == nil, do: raise("Invalid child id: #{id}")
           if Map.has_key?(map, id), do: raise("Duplicated child id: #{id}")
           {[id | index], Map.put(map, id, child)}
       end
@@ -81,11 +82,7 @@ defmodule Terminal.Panel do
     handle(state, {:mouse, s, mx - x, my - y, a})
   end
 
-  def handle(state, {:modal, [], event}) do
-    {state, event} = handle(state, event)
-    IO.inspect({event, focus_list(state, :next)})
-    {state, nil}
-  end
+  def handle(state, {:modal, [], event}), do: handle(state, event)
 
   def handle(state, {:modal, [key | tail], event}) do
     mote = state.children[key]
@@ -223,9 +220,11 @@ defmodule Terminal.Panel do
       {:focus, dir} ->
         {first, next} = focus_next(state, focus, dir)
 
+        # critical to remove and reapply focused even
+        # and specially when next equals current focus
         next =
           case {root, first, next} do
-            {_, ^focus, nil} -> nil
+            {true, ^focus, nil} -> focus
             {true, _, nil} -> first
             _ -> next
           end
@@ -348,7 +347,6 @@ defmodule Terminal.Panel do
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:enabled, state.enabled)
     Check.assert_gte(:findex, state.findex, -1)
-    Check.assert_boolean(:modal, state.modal)
     Check.assert_boolean(:root, state.root)
     Check.assert_map(:children, state.children)
     Check.assert_list(:index, state.index)

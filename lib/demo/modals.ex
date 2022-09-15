@@ -24,10 +24,10 @@ defmodule Terminal.Demo.Modals do
 
       markup(:text, Label,
         origin: {0, 6},
-        text: "This text should get covered by the modal"
+        text: "This should get covered by the modal"
       )
 
-      markup :modal, Panel, modal: true, visible: show, origin: {15, 4}, size: {30, 6} do
+      markup :modal, Panel, root: true, visible: show, origin: {15, 4}, size: {30, 6} do
         markup(:frame, Frame,
           origin: {0, 0},
           size: {30, 6},
@@ -41,10 +41,17 @@ defmodule Terminal.Demo.Modals do
           markup(23, Input, origin: {10, 0}, size: {12, 1})
           markup(24, Input, origin: {10, 1}, size: {12, 1}, password: true)
 
-          markup(:hide, Button,
+          markup(:cancel, Button,
+            origin: {8, 3},
+            size: {8, 1},
+            text: "Cancel",
+            on_click: on_hide
+          )
+
+          markup(:save, Button,
             origin: {18, 3},
             size: {8, 1},
-            text: "Hide",
+            text: "Save",
             on_click: on_hide
           )
         end

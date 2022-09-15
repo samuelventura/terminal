@@ -67,6 +67,8 @@ Process.exit pid, :kill
 - Arror up/down navigation
 - List rendering
 - Nil rendering
+- Keyboard shortcuts
+- Modal accept/cancel
 - Conditional rendering
 - Use effect execution order
 - Use effect cleanups

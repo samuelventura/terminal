@@ -178,7 +178,10 @@ defmodule Terminal.App do
 
     if visible and modal do
       [_ | key] = Enum.reverse(key)
-      State.set_modal(react, key)
+      # discard top root
+      if key != [] do
+        State.set_modal(react, key)
+      end
     end
   end
 end
