@@ -33,6 +33,7 @@ defmodule ButtonTest do
     assert Button.findex(%{findex: 0}) == 0
     assert Button.children(:state) == []
     assert Button.children(:state, []) == :state
+    assert Button.modal(:state) == false
 
     # update
     on_click = fn -> :click end
@@ -57,6 +58,9 @@ defmodule ButtonTest do
 
     # triggers
     assert Button.handle(%{on_click: on_click}, {:key, :any, "\r"}) ==
+             {%{on_click: on_click}, {:click, :click}}
+
+    assert Button.handle(%{on_click: on_click}, {:key, :any, " "}) ==
              {%{on_click: on_click}, {:click, :click}}
 
     assert Button.handle(%{on_click: on_click}, {:mouse, :any, :any, :any, @mouse_down}) ==

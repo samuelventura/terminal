@@ -32,6 +32,7 @@ defmodule FrameTest do
     assert Frame.findex(%{findex: 0}) == -1
     assert Frame.children(:state) == []
     assert Frame.children(:state, []) == :state
+    assert Frame.modal(:state) == false
 
     # update
     assert Frame.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}

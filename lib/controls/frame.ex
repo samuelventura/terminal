@@ -41,6 +41,7 @@ defmodule Terminal.Frame do
   def findex(_), do: -1
   def children(_), do: []
   def children(state, _), do: state
+  def modal(_), do: false
 
   def update(state, props) do
     props = Enum.into(props, %{})

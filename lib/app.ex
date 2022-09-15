@@ -1,4 +1,5 @@
 defmodule Terminal.App do
+  alias Terminal.Canvas
   alias Terminal.Control
   alias Terminal.State
   alias Terminal.App
@@ -45,7 +46,7 @@ defmodule Terminal.App do
         _ ->
           on_event = Map.get(opts, :on_event, fn _ -> nil end)
           on_event.(event)
-          {mote, _cmd} = mote_handle(mote, event)
+          {mote, _cmd} = mote_handle(react, mote, event)
           mote
       end
 
@@ -54,8 +55,30 @@ defmodule Terminal.App do
     exec_realize(react, func, opts, map)
   end
 
-  def render(%{mote: {module, state}}, canvas), do: module.render(state, canvas)
+  def render(%{react: react, mote: mote}, canvas) do
+    key = State.get_modal(react)
+    exec_render(mote, key, canvas)
+  end
+
   def execute(_cmd), do: nil
+
+  defp exec_render({module, state}, nil, canvas), do: module.render(state, canvas)
+
+  defp exec_render({module, state}, key, canvas) do
+    canvas = module.render(state, canvas)
+    canvas = Canvas.modal(canvas)
+
+    {module, state} =
+      Enum.reduce(key, {module, state}, fn id, {module, state} ->
+        children = Enum.into(module.children(state), %{})
+        Map.get(children, id)
+      end)
+
+    bounds = module.bounds(state)
+    canvas = Canvas.push(canvas, bounds)
+    canvas = module.render(state, canvas)
+    Canvas.pop(canvas)
+  end
 
   defp exec_realize(react, func, opts, map) do
     markup = func.(react, opts)
@@ -95,7 +118,15 @@ defmodule Terminal.App do
     exec_cleanups(tail)
   end
 
-  defp mote_handle({module, state}, event) do
+  defp mote_handle(react, {module, state}, event) do
+    key = State.get_modal(react)
+
+    event =
+      case key do
+        nil -> event
+        _ -> {:modal, key, event}
+      end
+
     {state, cmd} = module.handle(state, event)
     {{module, state}, cmd}
   end
@@ -122,10 +153,10 @@ defmodule Terminal.App do
 
   defp realize(react, markup, current, extras \\ []) do
     {key, modfun, opts, inner} = markup
-    keys = State.push(react, key)
+    keys = State.push_key(react, key)
     {module, opts, inner} = eval(react, {modfun, opts, inner})
     inner = for item <- inner, do: realize(react, item, current)
-    State.pop(react)
+    State.pop_key(react)
 
     state =
       case Map.get(current, keys) do
@@ -137,6 +168,17 @@ defmodule Terminal.App do
       end
 
     state = module.children(state, inner)
+    set_modal(react, keys, module, state)
     {key, {module, state}}
+  end
+
+  defp set_modal(react, key, module, state) do
+    visible = module.visible(state)
+    modal = module.modal(state)
+
+    if visible and modal do
+      [_ | key] = Enum.reverse(key)
+      State.set_modal(react, key)
+    end
   end
 end

@@ -86,7 +86,7 @@ defmodule Terminal.Demo.Controls do
       markup(21, Label, origin: {0, 2}, text: "Username:")
       markup(22, Label, origin: {0, 3}, text: "Password:")
 
-      markup(23, Input, origin: {10, 2}, size: {div(w, 2), 2}, text: user, on_change: on_user)
+      markup(23, Input, origin: {10, 2}, size: {div(w, 2), 1}, text: user, on_change: on_user)
 
       markup(24, Input,
         password: true,

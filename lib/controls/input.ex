@@ -51,6 +51,7 @@ defmodule Terminal.Input do
   def findex(%{findex: findex}), do: findex
   def children(_), do: []
   def children(state, _), do: state
+  def modal(_), do: false
 
   def update(%{text: text} = state, props) do
     props = Enum.into(props, %{})

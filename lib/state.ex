@@ -18,7 +18,8 @@ defmodule Terminal.State do
           preieffects: [],
           ceffects: %{},
           timers: %{},
-          timerc: 0
+          timerc: 0,
+          modal: nil
         }
       end)
 
@@ -33,21 +34,21 @@ defmodule Terminal.State do
     Agent.get(agent, fn map -> map end)
   end
 
-  def push(agent, key) do
+  def push_key(agent, key) do
     Agent.get_and_update(agent, fn map ->
       keys = [key | map.keys]
       {keys, %{map | keys: keys}}
     end)
   end
 
-  def pop(agent) do
+  def pop_key(agent) do
     Agent.get_and_update(agent, fn map ->
       [key | tail] = map.keys
       {key, %{map | keys: tail}}
     end)
   end
 
-  def key(agent, key) do
+  def append_key(agent, key) do
     Agent.get(agent, fn map -> [key | map.keys] end)
   end
 
@@ -104,7 +105,8 @@ defmodule Terminal.State do
           preieffects: map.ieffects,
           ceffects: map.ceffects,
           timers: map.timers,
-          timerc: map.timerc
+          timerc: map.timerc,
+          modal: nil
         }
       end)
   end
@@ -241,5 +243,16 @@ defmodule Terminal.State do
         Map.pop(timers, id)
       end)
     end)
+  end
+
+  def set_modal(agent, key) do
+    :ok =
+      Agent.update(agent, fn map ->
+        Map.put(map, :modal, key)
+      end)
+  end
+
+  def get_modal(agent) do
+    Agent.get(agent, fn map -> Map.get(map, :modal) end)
   end
 end

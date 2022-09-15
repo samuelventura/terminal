@@ -17,6 +17,7 @@ defmodule PanelTest do
              visible: true,
              enabled: true,
              findex: 0,
+             modal: false,
              root: false,
              index: [],
              children: %{},

@@ -2,6 +2,7 @@ defmodule Terminal.Demo do
   use Terminal.App
   import Terminal.Demo.Colors
   import Terminal.Demo.Controls
+  import Terminal.Demo.Modals
   import Terminal.Demo.Counter
   import Terminal.Demo.Timers
   import Terminal.Demo.Effects
@@ -41,6 +42,7 @@ defmodule Terminal.Demo do
           items: [
             "Colors",
             "Controls",
+            "Modals",
             "Counter",
             "Timers",
             "Effects",
@@ -64,12 +66,13 @@ defmodule Terminal.Demo do
 
   def tabs(_react, %{tab: tab, origin: origin, size: size}) do
     case tab do
-      0 -> markup(:colors, &colors/2, origin: origin, size: size)
-      1 -> markup(:controls, &controls/2, origin: origin, size: size)
-      2 -> markup(:counter, &counter/2, origin: origin, size: size)
-      3 -> markup(:timers, &timers/2, origin: origin, size: size)
-      4 -> markup(:effects, &effects/2, origin: origin, size: size)
-      5 -> markup(:unsafe, &unsafe/2, origin: origin, size: size)
+      0 -> markup(tab, &colors/2, origin: origin, size: size)
+      1 -> markup(tab, &controls/2, origin: origin, size: size)
+      2 -> markup(tab, &modals/2, origin: origin, size: size)
+      3 -> markup(tab, &counter/2, origin: origin, size: size)
+      4 -> markup(tab, &timers/2, origin: origin, size: size)
+      5 -> markup(tab, &effects/2, origin: origin, size: size)
+      6 -> markup(tab, &unsafe/2, origin: origin, size: size)
     end
   end
 end

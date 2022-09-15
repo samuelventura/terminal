@@ -34,6 +34,7 @@ defmodule CheckboxTest do
     assert Checkbox.findex(%{findex: 0}) == 0
     assert Checkbox.children(:state) == []
     assert Checkbox.children(:state, []) == :state
+    assert Checkbox.modal(:state) == false
 
     # update
     on_change = fn checked -> checked end

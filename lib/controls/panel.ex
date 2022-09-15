@@ -12,14 +12,16 @@ defmodule Terminal.Panel do
     enabled = Map.get(opts, :enabled, true)
     findex = Map.get(opts, :findex, 0)
     root = Map.get(opts, :root, false)
+    modal = Map.get(opts, :modal, false)
 
     state = %{
-      focused: root,
+      focused: root or modal,
       origin: origin,
       size: size,
       visible: visible,
       enabled: enabled,
       findex: findex,
+      modal: modal,
       root: root,
       index: [],
       children: %{},
@@ -35,6 +37,7 @@ defmodule Terminal.Panel do
   def focused(state, focused), do: Map.put(state, :focused, focused)
   def refocus(state, dir), do: recalculate(state, dir)
   def findex(%{findex: findex}), do: findex
+  def modal(%{modal: modal}), do: modal
 
   def focusable(%{enabled: false}), do: false
   def focusable(%{visible: false}), do: false
@@ -72,6 +75,23 @@ defmodule Terminal.Panel do
     state = Control.merge(state, props)
     state = recalculate(state, :next)
     check(state)
+  end
+
+  def handle(%{origin: {x, y}} = state, {:modal, [], {:mouse, s, mx, my, a}}) do
+    handle(state, {:mouse, s, mx - x, my - y, a})
+  end
+
+  def handle(state, {:modal, [], event}) do
+    {state, event} = handle(state, event)
+    IO.inspect({event, focus_list(state, :next)})
+    {state, nil}
+  end
+
+  def handle(state, {:modal, [key | tail], event}) do
+    mote = state.children[key]
+    {mote, event} = mote_handle(mote, {:modal, tail, event})
+    state = put_child(state, key, mote)
+    {state, event}
   end
 
   def handle(%{focus: nil} = state, {:key, _, _}), do: {state, nil}
@@ -292,11 +312,17 @@ defmodule Terminal.Panel do
   defp mote_focused({module, state}), do: module.focused(state)
 
   defp mote_render({module, state}, canvas) do
-    case module.visible(state) do
-      false ->
+    visible = module.visible(state)
+    modal = module.modal(state)
+
+    case {visible, modal} do
+      {false, _} ->
         canvas
 
-      true ->
+      {_, true} ->
+        canvas
+
+      _ ->
         bounds = module.bounds(state)
         canvas = Canvas.push(canvas, bounds)
         canvas = module.render(state, canvas)
@@ -322,6 +348,7 @@ defmodule Terminal.Panel do
     Check.assert_boolean(:visible, state.visible)
     Check.assert_boolean(:enabled, state.enabled)
     Check.assert_gte(:findex, state.findex, -1)
+    Check.assert_boolean(:modal, state.modal)
     Check.assert_boolean(:root, state.root)
     Check.assert_map(:children, state.children)
     Check.assert_list(:index, state.index)

@@ -54,6 +54,7 @@ defmodule Terminal.Radio do
   def findex(%{findex: findex}), do: findex
   def children(_), do: []
   def children(state, _), do: state
+  def modal(_), do: false
 
   def update(%{items: items} = state, props) do
     props = Enum.into(props, %{})

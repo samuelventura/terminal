@@ -18,6 +18,15 @@ defmodule Terminal.Canvas do
     }
   end
 
+  def modal(canvas) do
+    %{width: width, height: height} = canvas
+    %{data: data} = canvas
+    canvas = new(width, height)
+    data = for {key, {d, _, _}} <- data, do: {key, {d, @bblack, @black}}
+    data = Enum.into(data, %{})
+    %{canvas | data: data}
+  end
+
   def push(%{clips: clips} = canvas, bounds) do
     canvas = %{canvas | clips: [bounds | clips]}
     update_clip(canvas)

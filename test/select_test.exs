@@ -37,6 +37,7 @@ defmodule SelectTest do
     assert Select.findex(%{findex: 0}) == 0
     assert Select.children(:state) == []
     assert Select.children(:state, []) == :state
+    assert Select.modal(:state) == false
 
     # update
     on_change = fn index, item -> {index, item} end

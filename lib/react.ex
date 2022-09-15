@@ -38,7 +38,7 @@ defmodule Terminal.React do
   end
 
   def use_state(react, key, initial) do
-    keys = State.key(react, key)
+    keys = State.append_key(react, key)
     current = State.use_state(react, keys, initial)
     pid = assert_pid(react)
 
@@ -57,7 +57,7 @@ defmodule Terminal.React do
 
   def use_callback(react, key, function) do
     assert_pid(react)
-    keys = State.key(react, key)
+    keys = State.append_key(react, key)
     State.use_callback(react, keys, function)
     fn -> State.get_callback(react, keys).() end
   end
@@ -68,7 +68,7 @@ defmodule Terminal.React do
 
   def use_effect(react, key, deps, callback) do
     assert_pid(react)
-    keys = State.key(react, key)
+    keys = State.append_key(react, key)
 
     function = fn ->
       cleanup = callback.()

@@ -11,6 +11,7 @@ defmodule Terminal.Control do
   @callback findex(state :: any()) :: integer()
   @callback children(state :: any()) :: Keyword.t()
   @callback children(state :: any(), Keyword.t()) :: any()
+  @callback modal(state :: any()) :: true | false
   @callback update(state :: any(), Keyword.t()) :: any()
 
   def init(module, opts \\ []), do: {module, module.init(opts)}

@@ -36,6 +36,7 @@ defmodule RadioTest do
     assert Radio.findex(%{findex: 0}) == 0
     assert Radio.children(:state) == []
     assert Radio.children(:state, []) == :state
+    assert Radio.modal(:state) == false
 
     # update
     on_change = fn index, item -> {index, item} end

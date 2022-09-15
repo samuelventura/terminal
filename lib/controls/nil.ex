@@ -11,6 +11,7 @@ defmodule Terminal.Nil do
   def findex(_), do: -1
   def children(_), do: []
   def children(_, _), do: nil
+  def modal(_), do: false
   def update(_, _), do: nil
   def handle(_, _), do: {nil, nil}
   def render(_, canvas), do: canvas

@@ -30,6 +30,7 @@ defmodule LabelTest do
     assert Label.findex(%{findex: 0}) == -1
     assert Label.children(:state) == []
     assert Label.children(:state, []) == :state
+    assert Label.modal(:state) == false
 
     # update
     assert Label.update(initial, origin: {1, 2}) == %{initial | origin: {1, 2}}

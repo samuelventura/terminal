@@ -47,6 +47,7 @@ defmodule Terminal.Button do
   def findex(%{findex: findex}), do: findex
   def children(_), do: []
   def children(state, _), do: state
+  def modal(_), do: false
 
   def update(state, props) do
     props = Enum.into(props, %{})
@@ -62,6 +63,7 @@ defmodule Terminal.Button do
   def handle(state, {:key, _, @arrow_up}), do: {state, {:focus, :prev}}
   def handle(state, {:key, _, @arrow_right}), do: {state, {:focus, :next}}
   def handle(state, {:key, _, @arrow_left}), do: {state, {:focus, :prev}}
+  def handle(state, {:key, _, " "}), do: trigger(state)
   def handle(state, {:key, _, "\r"}), do: trigger(state)
   def handle(state, {:mouse, @wheel_up, _, _, _}), do: {state, nil}
   def handle(state, {:mouse, @wheel_down, _, _, _}), do: {state, nil}

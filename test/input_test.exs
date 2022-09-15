@@ -35,6 +35,7 @@ defmodule InputTest do
     assert Input.findex(%{findex: 0}) == 0
     assert Input.children(:state) == []
     assert Input.children(:state, []) == :state
+    assert Input.modal(:state) == false
 
     # update
     on_change = fn value -> value end
