@@ -48,6 +48,7 @@ defmodule Terminal.Demo.Unsafe do
       markup(:notice1, Label, origin: {0, 6}, text: "Spawns task from event handler")
       markup(:notice2, Label, origin: {0, 7}, text: "DHCP save should work")
       markup(:notice3, Label, origin: {0, 8}, text: "Static save should fail")
+      markup(:notice4, Label, origin: {0, 9}, text: "Crash if demo changed while saving")
 
       markup(:type, Radio,
         origin: {0, 1},
