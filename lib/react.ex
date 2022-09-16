@@ -152,10 +152,12 @@ defmodule Terminal.React do
   end
 
   def log(msg) do
-    # 2022-09-10 20:02:49.684244Z
-    now = DateTime.utc_now()
-    now = String.slice("#{now}", 11..22)
-    IO.puts("#{now} #{inspect(self())} #{msg}")
+    if System.get_env("ReactLogs", "false") == "true" do
+      # 2022-09-10 20:02:49.684244Z
+      now = DateTime.utc_now()
+      now = String.slice("#{now}", 11..22)
+      IO.puts("#{now} #{inspect(self())} #{msg}")
+    end
   end
 
   defp assert_pid(react) do

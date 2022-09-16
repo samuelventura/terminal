@@ -16,8 +16,9 @@ defmodule Terminal.Demo.Modals do
         on_click: on_show
       )
 
-      markup(10, Label, origin: {0, 1}, text: "F2 to show modal")
-      markup(11, Label, origin: {0, 6}, text: "This should get covered by the modal")
+      markup(10, Label, origin: {0, 1}, text: "Keyboard shortcuts")
+      markup(11, Label, origin: {0, 2}, text: "F2 to show modal")
+      markup(12, Label, origin: {0, 6}, text: "This should get covered by the modal")
 
       markup :modal, Panel, root: true, visible: show, origin: {15, 4}, size: {30, 6} do
         markup(:frame, Frame,

@@ -2,6 +2,8 @@ defmodule Terminal.Code do
   @behaviour Terminal.Term
   use Terminal.Const
 
+  # works unchanged on macos terminal
+  # first output line goes to bottom
   def init(),
     do:
       [

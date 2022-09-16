@@ -21,6 +21,7 @@ defmodule Terminal.Demo.Effects do
       markup(1, Label, origin: {0, 0}, text: "Click and change tabs")
       markup(2, Label, origin: {0, 1}, text: "to see logged effects.")
       markup(3, Label, origin: {0, 2}, text: "See source code as well.")
+      markup(4, Label, origin: {0, 3}, text: "System.put_env(\"ReactLogs\", \"true\").")
     end
   end
 end

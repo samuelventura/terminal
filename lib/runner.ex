@@ -14,7 +14,10 @@ defmodule Terminal.Runner do
     Task.start_link(fn -> run(opts) end)
   end
 
-  def run(tty: tty, term: term, app: app) do
+  def run(opts) do
+    tty = Keyword.fetch!(opts, :tty)
+    term = Keyword.fetch!(opts, :term)
+    app = Keyword.fetch!(opts, :app)
     tty = Tty.open(tty)
     tty = init_tty(tty, term)
     {tty, size} = query_size(tty, term)

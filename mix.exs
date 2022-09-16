@@ -20,7 +20,10 @@ defmodule Terminal.MixProject do
   end
 
   defp deps do
-    []
+    [
+      # {:teletype, path: "../teletype"}
+      {:teletype, git: "https://github.com/samuelventura/teletype"}
+    ]
   end
 
   defp description do

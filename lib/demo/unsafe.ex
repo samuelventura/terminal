@@ -45,8 +45,9 @@ defmodule Terminal.Demo.Unsafe do
     markup :main, Panel, origin: origin, size: size do
       markup(:title, Label, origin: {0, 0}, size: {w, 1}, text: "Interface eth0")
       markup(:alert, Label, origin: {0, 5}, size: {w, 1}, text: msg, back: bgc, fore: fgc)
-      markup(:notice1, Label, origin: {0, 6}, text: "DHCP save should work")
-      markup(:notice2, Label, origin: {0, 7}, text: "Static save should fail")
+      markup(:notice1, Label, origin: {0, 6}, text: "Spawns task from event handler")
+      markup(:notice2, Label, origin: {0, 7}, text: "DHCP save should work")
+      markup(:notice3, Label, origin: {0, 8}, text: "Static save should fail")
 
       markup(:type, Radio,
         origin: {0, 1},

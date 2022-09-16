@@ -125,7 +125,7 @@ defmodule Terminal.Demo.Timers do
       end
 
       markup(:reset, Button,
-        origin: {0, 3},
+        origin: {0, 4},
         size: {w, 1},
         text: "Reset",
         on_click: on_reset

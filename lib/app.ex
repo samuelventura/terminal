@@ -23,6 +23,47 @@ defmodule Terminal.App do
       defdelegate handle(state, event), to: App
       defdelegate render(state, canvas), to: App
       defdelegate execute(cmd), to: App
+
+      def child_spec(opts) do
+        %{
+          id: __MODULE__,
+          start: {__MODULE__, :start_link, opts}
+        }
+      end
+
+      def start_link(opts \\ []) do
+        alias Terminal.Runner
+        alias Terminal.Code
+        alias Terminal.Pty
+        tty = Teletype.Tty
+        {term, opts} = Keyword.pop(opts, :term, Code)
+        {tty, opts} = Keyword.pop(opts, :tty, tty)
+        app = {__MODULE__, opts}
+
+        tty =
+          case tty do
+            {module, opts} -> {module, opts}
+            module -> {module, []}
+          end
+
+        Runner.start_link(tty: tty, term: term, app: app)
+      end
+
+      def stop(pid) do
+        Process.unlink(pid)
+        Process.exit(pid, :kill)
+      end
+
+      def run(opts \\ []) do
+        Process.flag(:trap_exit, true)
+        {:ok, pid} = start_link(opts)
+
+        receive do
+          {:EXIT, ^pid, reason} ->
+            System.cmd("reset", [])
+            IO.inspect(reason)
+        end
+      end
     end
   end
 
@@ -43,6 +84,9 @@ defmodule Terminal.App do
         {:cmd, :callback, callback} ->
           callback.()
           mote
+
+        {:key, @ctl, "c"} ->
+          raise("Ctrl+c interrupt")
 
         _ ->
           on_event = Map.get(opts, :on_event, fn _ -> nil end)

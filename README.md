@@ -4,6 +4,17 @@ Elixir Terminal UIs with Reactish API
 
 ![image](https://user-images.githubusercontent.com/4142710/189275618-cd1acb2e-8023-4892-85e1-0c850ecb4275.png)
 
+## Demo
+
+```elixir
+#from bash (no logs)
+#Ctrl+c to exit
+mix run demo.exs
+#from iex (no logs)
+#Ctrl+c to exit
+Demo.run()
+```
+
 ## Development
 
 ```elixir
@@ -23,8 +34,12 @@ Elixir Terminal UIs with Reactish API
 #
 # echo -en "\033[1mThis is bold text.\033[0m" | nc 127.0.0.1 8880
 # to test server end honors escapes
-{:ok, pid} = Runner.start_link tty: {Socket, ip: "127.0.0.1", port: 8880}, term: Code, app: {Demo, []}
-Process.exit pid, :kill
+System.put_env("ReactLogs", "true")
+tty = {Socket, ip: "127.0.0.1", port: 8880}
+{:ok, pid} = Demo.start_link(term: Code, tty: tty)
+Demo.stop(pid)
+#direct from iex (no logs)
+Demo.run()
 ```
 
  ## Design Guidelines
@@ -80,3 +95,4 @@ Process.exit pid, :kill
 - Test reverse nav
 - Test canvas && diffing
 - Test visible propagation
+- Kill app with ctrl+c
