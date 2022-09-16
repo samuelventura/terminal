@@ -4,6 +4,8 @@ Elixir Terminal UIs with Reactish API
 
 ![image](https://user-images.githubusercontent.com/4142710/189275618-cd1acb2e-8023-4892-85e1-0c850ecb4275.png)
 
+Uses [teletype](https://github.com/samuelventura/teletype) for native TTY support
+
 ## Demo
 
 ```elixir
@@ -36,18 +38,19 @@ Demo.run()
 # to test server end honors escapes
 System.put_env("ReactLogs", "true")
 tty = {Socket, ip: "127.0.0.1", port: 8880}
-{:ok, pid} = Demo.start_link(term: Code, tty: tty)
+{:ok, pid} = Demo.start_link(tty: tty)
 Demo.stop(pid)
 #direct from iex (no logs)
 Demo.run()
 ```
 
- ## Design Guidelines
+ ## Design
 
+- Only tested so far on VS Code integrated terminal and Linux legacy TTY.
 - Very minimal escape sequences to ensure Linux TTY works.
-- Widget event handlers triggered only from keyboard events
-- Use react state and widget events instead of getters (on_change instead of get_value)
-    - Corollary: Select is not focusable if on_change is nil
+- Control event handlers triggered only from keyboard events
+- Use react state and control events instead of getters (on_change instead of get_value)
+    - Corollary: Controls are not focusable if on_handler is nil
 - Function components external children must be ignored
 - No mixing on logic and markup allowed. State and logic to the top, markup to the bottom.
 - Null effects may be executed multiple times in a single user event because of state changes propagation.
@@ -63,36 +66,41 @@ Demo.run()
 
 ## Future
 
-- Mouse
-- Mouse wheel
-- Drag and drop
-- Selection
-- Clipboard
-- Modals
-- Checkbox
-- TextArea
-- Input scrolling
-- Input validation
-- Reversed tab
-- Commands
-- Subscriptions
-- Explicit screen redraw
-- XTerm support
-- Term behaviour
-- Zero index coordinates
-- Tab index testing
-- Tab navigation testing
-- Arror up/down navigation
-- List rendering
-- Nil rendering
-- Keyboard shortcuts
-- Modal accept/cancel
-- Conditional rendering
-- Use effect execution order
-- Use effect cleanups
-- Timer API
-- Test refocus
-- Test reverse nav
-- Test canvas && diffing
-- Test visible propagation
-- Kill app with ctrl+c
+- [ ] Ctrl-c handler
+- [ ] Resize handler
+- [ ] XTerm support
+- [ ] Konsole support
+- [ ] MacOS terminal support
+- [ ] Explicit screen redraw
+- [ ] TextArea
+- [ ] Drag and drop
+- [ ] Selection
+- [ ] Clipboard
+- [ ] Input scrolling
+- [x] Input validation
+- [X] Mouse
+- [X] Mouse wheel
+- [X] Modals
+- [X] Checkbox
+- [X] Reversed tab
+- [x] Commands
+- [x] Subscriptions
+- [X] Term behaviour
+- [X] Zero index coordinates
+- [X] Tab index testing
+- [X] Tab navigation testing
+- [X] Arror up/down navigation
+- [X] List rendering
+- [X] Nil rendering
+- [X] Keyboard shortcuts
+- [x] Modal accept/cancel
+- [x] Conditional rendering
+- [X] Use effect execution order
+- [X] Use effect cleanups
+- [X] Timer API
+- [x] Test refocus
+- [x] Test reverse nav
+- [x] Test canvas && diffing
+- [x] Test visible propagation
+- [X] Kill app with ctrl+c
+
