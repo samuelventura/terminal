@@ -21,7 +21,6 @@ defmodule Terminal.Xterm do
   def hide(:cursor), do: "\e[?25l"
   def show(:cursor), do: "\e[?25h"
   def cursor(column, line), do: "\e[#{line + 1};#{column + 1}H"
-  # bright colors are shifted by 8 but frame chars wont show in bblack
   def color(:fore, color), do: "\e[38;5;#{rem(color, 16)}m"
   def color(:back, color), do: "\e[48;5;#{rem(color, 8)}m"
 
@@ -30,37 +29,10 @@ defmodule Terminal.Xterm do
     scan(buffer, [])
   end
 
-  # https://xtermjs.org/docs/api/vtfeatures/
-  # xtermjs wont support blink #944
   defp clear(:all), do: "\ec"
-  # defp clear(:screen), do: "\e[2J"
-  # defp clear(:styles), do: "\e[0m"
-
-  # standard required to enable extended
   defp mouse(:standard), do: "\e[?1000h"
   defp mouse(:extended), do: "\e[?1006h"
-
-  # defp set(:cursor, @blinking_block), do: "\e[1 q"
-  # defp set(:cursor, @steady_block), do: "\e[2 q"
   defp set(:cursor, :blinking_underline), do: "\e[3 q"
-  # # defp set(:cursor, @steady_underline), do: "\e[4 q"
-  # # defp set(:cursor, @blinking_bar), do: "\e[5 q"
-  # # defp set(:cursor, @steady_bar), do: "\e[6 q"
-  # # defp set(:bold), do: "\e[1m"
-  # defp set(:dimmed), do: "\e[2m"
-  # defp set(:italic), do: "\e[3m"
-  # defp set(:underline), do: "\e[4m"
-  # defp set(:inverse), do: "\e[7m"
-  # defp set(:crossed), do: "\e[9m"
-  # defp set(_), do: ""
-
-  # normal reset both bold and dimmed
-  # defp reset(:normal), do: "\e[22m"
-  # defp reset(:italic), do: "\e[23m"
-  # defp reset(:underline), do: "\e[24m"
-  # defp reset(:inverse), do: "\e[27m"
-  # defp reset(:crossed), do: "\e[29m"
-  # defp reset(_), do: ""
 
   @size_re ~r/^\e\[(\d+);(\d+)R/
   @mouse_re ~r/^\e\[M(.)(.)(.)/
@@ -69,7 +41,7 @@ defmodule Terminal.Xterm do
 
   # thinkpad/corsair usb us keyboard
   @escapes [
-    # working in linux
+    # konsole/code
     {"\eOP", @f1},
     {"\eOQ", @f2},
     {"\eOR", @f3},
@@ -99,7 +71,7 @@ defmodule Terminal.Xterm do
     # option + up/down
     {"\e[1;3A", @home},
     {"\e[1;3B", @hend},
-    # os/code traps these
+    # os traps these
     {"\e[23~", @f11}
   ]
 
@@ -133,30 +105,6 @@ defmodule Terminal.Xterm do
     {<<22>>, {@ctl, "v"}},
     {<<2>>, {@ctl, "b"}},
     {<<14>>, {@ctl, "n"}}
-    # tab -> "\t"
-    # prtsc -> <<28>>
-    # ctrl_` -> ctrl_2
-    # ctrl_1 -> silent
-    # ctrl_3 -> \e
-    # ctrl_8 -> \d
-    # ctrl_9 -> silent
-    # ctrl_0 -> silent
-    # ctrl_- -> <<31>>
-    # ctrl_= -> silent
-    # ctrl_back -> \b ctrl_h
-    # ctrl_\t -> silent
-    # ctrl_m -> \r
-    # ctrl_[ -> \e
-    # ctrl_] -> ctrl_5
-    # ctrl_\ -> :prtsc
-    # ctrl_; -> silent
-    # ctrl_' -> ctrl_g
-    # ctrl_, -> silent
-    # ctrl_. -> silent
-    # ctrl_/ -> silent
-    # ctrl_space -> ctrl_2
-    # ctrl_i -> \t
-    # ctrl_j -> \n (blocked input at some point)
   ]
 
   @singles_map @singles |> Enum.into(%{})

@@ -9,11 +9,13 @@ tty = {tty, []}
 
 tty = Tty.open(tty)
 tty = Tty.write!(tty, term.init())
+IO.puts "#{inspect(term.init())}\r"
 query = term.query(:size)
 tty = Tty.write!(tty, query)
 
 Enum.reduce_while(Stream.cycle(0..1), {tty, ""}, fn _, {tty, buffer} ->
   {tty, data} = Tty.read!(tty)
+  IO.puts "#{inspect(data)}\r"
   {buffer, events} = term.append(buffer, data)
   IO.puts "#{inspect(events)}\r"
   case events do

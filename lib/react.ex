@@ -92,10 +92,16 @@ defmodule Terminal.React do
 
     {:ok, task} =
       Task.start_link(fn ->
-        stream = Stream.interval(millis)
+        stream = Stream.cycle(0..1)
 
         Enum.any?(stream, fn _ ->
-          send(pid, {:cmd, :callback, callfunc})
+          receive do
+            _ -> nil
+          after
+            millis ->
+              send(pid, {:cmd, :callback, callfunc})
+          end
+
           State.get_timer(react, id) == nil
         end)
 
@@ -125,11 +131,16 @@ defmodule Terminal.React do
       if task != nil, do: callback.()
     end
 
-    # Process.send_after is a cancelable an alternative
+    # Process.send_after is a cancelable alternative
     {:ok, task} =
       Task.start_link(fn ->
-        :timer.sleep(millis)
-        send(pid, {:cmd, :callback, callfunc})
+        receive do
+          _ -> nil
+        after
+          millis ->
+            send(pid, {:cmd, :callback, callfunc})
+        end
+
         Process.unlink(pid)
       end)
 
@@ -139,11 +150,7 @@ defmodule Terminal.React do
       # unlink requires react process
       assert_pid(react)
       task = State.clear_timer(react, id)
-
-      if task != nil do
-        Process.unlink(task)
-        Process.exit(task, :kill)
-      end
+      if task != nil, do: send(task, :exit)
     end
   end
 

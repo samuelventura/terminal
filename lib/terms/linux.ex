@@ -71,9 +71,6 @@ defmodule Terminal.Linux do
     {"\b", {@ctl, "h"}},
     {"\v", {@ctl, "k"}},
     {"\f", {@ctl, "l"}},
-    # {"\t", {@ctl, "i"}},
-    # {"\n", {@ctl, "j"}},
-    # {"\r", {@ctl, "m"}},
     {<<0>>, {@ctl, "2"}},
     {<<28>>, {@ctl, "4"}},
     {<<29>>, {@ctl, "5"}},
@@ -98,31 +95,6 @@ defmodule Terminal.Linux do
     {<<22>>, {@ctl, "v"}},
     {<<2>>, {@ctl, "b"}},
     {<<14>>, {@ctl, "n"}}
-
-    # tab -> "\t"
-    # prtsc -> <<28>>
-    # ctrl_` -> ctrl_2
-    # ctrl_1 -> silent
-    # ctrl_3 -> \e
-    # ctrl_8 -> \d
-    # ctrl_9 -> silent
-    # ctrl_0 -> silent
-    # ctrl_- -> <<31>>
-    # ctrl_= -> silent
-    # ctrl_back -> \b ctrl_h
-    # ctrl_\t -> silent
-    # ctrl_m -> \r
-    # ctrl_[ -> \e
-    # ctrl_] -> ctrl_5
-    # ctrl_\ -> :prtsc
-    # ctrl_; -> silent
-    # ctrl_' -> ctrl_g
-    # ctrl_, -> silent
-    # ctrl_. -> silent
-    # ctrl_/ -> silent
-    # ctrl_space -> ctrl_2
-    # ctrl_i -> \t
-    # ctrl_j -> \n (blocked input at some point)
   ]
 
   @singles_map @singles |> Enum.into(%{})
