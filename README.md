@@ -11,7 +11,7 @@ Uses [teletype](https://github.com/samuelventura/teletype) for native TTY suppor
 ```elixir
 #from bash (no logs)
 #Ctrl+c to exit
-mix run demo.exs
+mix run scripts/demo.exs
 #from iex (no logs)
 #Ctrl+c to exit
 Demo.run()

@@ -33,10 +33,10 @@ defmodule Terminal.App do
 
       def start_link(opts \\ []) do
         alias Terminal.Runner
-        alias Terminal.Code
+        alias Terminal.Xterm
         alias Terminal.Pty
         tty = Teletype.Tty
-        {term, opts} = Keyword.pop(opts, :term, Code)
+        {term, opts} = Keyword.pop(opts, :term, Xterm)
         {tty, opts} = Keyword.pop(opts, :tty, tty)
         app = {__MODULE__, opts}
 

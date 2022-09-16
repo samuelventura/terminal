@@ -33,7 +33,7 @@ defmodule Terminal.MixProject do
   defp package do
     [
       name: :terminal,
-      files: ["lib", "test", "mix.*", "*.exs", "*.md", ".gitignore", "LICENSE"],
+      files: ["lib", "test", "scripts", "mix.*", "*.exs", "*.md", ".gitignore", "LICENSE"],
       maintainers: ["Samuel Ventura"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/samuelventura/terminal/"}

@@ -1,9 +1,11 @@
-defmodule Terminal.Code do
+defmodule Terminal.Xterm do
   @behaviour Terminal.Term
   use Terminal.Const
 
-  # works unchanged on macos terminal
-  # first output line goes to bottom
+  # code/kubuntu TERM=xterm-256color
+  # konsole TERM=xterm-256color
+  # macos TERM=xterm-256color
+  # macos: first output line goes to bottom
   def init(),
     do:
       [
@@ -29,7 +31,7 @@ defmodule Terminal.Code do
   end
 
   # https://xtermjs.org/docs/api/vtfeatures/
-  # xtermjs wont suppot blink #944
+  # xtermjs wont support blink #944
   defp clear(:all), do: "\ec"
   # defp clear(:screen), do: "\e[2J"
   # defp clear(:styles), do: "\e[0m"
@@ -68,8 +70,12 @@ defmodule Terminal.Code do
   # thinkpad/corsair usb us keyboard
   @escapes [
     # working in linux
+    {"\eOP", @f1},
     {"\eOQ", @f2},
+    {"\eOR", @f3},
     {"\eOS", @f4},
+    {"\e[15~", @f5},
+    {"\e[17~", @f6},
     {"\e[18~", @f7},
     {"\e[19~", @f8},
     {"\e[20~", @f9},
@@ -94,10 +100,6 @@ defmodule Terminal.Code do
     {"\e[1;3A", @home},
     {"\e[1;3B", @hend},
     # os/code traps these
-    {"\e[[A", @f1},
-    {"\e[[C", @f3},
-    {"\e[[E", @f5},
-    {"\e[17~", @f6},
     {"\e[23~", @f11}
   ]
 
