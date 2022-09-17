@@ -85,6 +85,7 @@ Demo.run()
 - [ ] Selection
 - [ ] Clipboard
 - [ ] Input scrolling
+- [ ] Check SIGWINCH+sizequery wont clash with diffing algo
 - [x] Input validation
 - [X] Mouse
 - [X] Mouse wheel

@@ -18,7 +18,8 @@ defmodule Terminal.Xterm do
       |> IO.iodata_to_binary()
 
   def reset(), do: clear(:all)
-  def query(:size), do: "\e[s\e[999;999H\e[6n\e[u"
+  # last \e[H required by macos terminal to return home
+  def query(:size), do: "\e[s\e[999;999H\e[6n\e[u\e[H"
   def hide(:cursor), do: "\e[?25l"
   def show(:cursor), do: "\e[?25h"
   def cursor(column, line), do: "\e[#{line + 1};#{column + 1}H"
@@ -65,6 +66,7 @@ defmodule Terminal.Xterm do
     {"\e[C", @arrow_right},
     {"\e[D", @arrow_left},
     # macos
+    # fx = fn + fx
     # delete = fn + backspace
     # shift + up/down
     {"\e[1;2A", @page_up},
