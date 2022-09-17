@@ -4,9 +4,8 @@
 alias Terminal.Tty
 
 term = Terminal.Xterm
-tty = Teletype.Tty
+tty = Terminal.Pseudo
 tty = {tty, []}
-
 tty = Tty.open(tty)
 tty = Tty.write!(tty, term.init())
 IO.puts "#{inspect(term.init())}\r"
@@ -24,4 +23,4 @@ Enum.reduce_while(Stream.cycle(0..1), {tty, ""}, fn _, {tty, buffer} ->
   end
 end)
 
-System.cmd "reset", []
+Teletype.reset()

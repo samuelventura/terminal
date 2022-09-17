@@ -64,6 +64,10 @@ Demo.run()
 - Dialog buttons order should be accept then cancel to take advange of enter navigation.
 - Escape should close dialogs from any current focused control (shortcut).
 
+## Issues
+
+- konsole is not consistently responding size queries as vscode term does
+
 ## Future
 
 - [ ] Ctrl-c handler

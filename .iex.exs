@@ -4,6 +4,7 @@ alias Terminal.Const
 alias Terminal.Socket
 alias Terminal.Linux
 alias Terminal.Xterm
+alias Terminal.Pseudo
 
 alias Terminal.Runner
 alias Terminal.Runnable

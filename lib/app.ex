@@ -34,8 +34,7 @@ defmodule Terminal.App do
       def start_link(opts \\ []) do
         alias Terminal.Runner
         alias Terminal.Xterm
-        alias Terminal.Pty
-        tty = Teletype.Tty
+        tty = Terminal.Pseudo
         {term, opts} = Keyword.pop(opts, :term, Xterm)
         {tty, opts} = Keyword.pop(opts, :tty, tty)
         app = {__MODULE__, opts}
@@ -60,7 +59,7 @@ defmodule Terminal.App do
 
         receive do
           {:EXIT, ^pid, reason} ->
-            System.cmd("reset", [])
+            Teletype.reset()
             IO.inspect(reason)
         end
       end
