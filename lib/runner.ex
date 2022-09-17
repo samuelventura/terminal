@@ -1,4 +1,5 @@
 defmodule Terminal.Runner do
+  use Terminal.Const
   alias Terminal.Tty
   alias Terminal.Runnable
   alias Terminal.Canvas
@@ -35,11 +36,26 @@ defmodule Terminal.Runner do
     Tty.write!(tty, term.init())
   end
 
+  defp close_tty(tty, term) do
+    tty = Tty.write!(tty, term.reset())
+    Tty.close(tty)
+  end
+
   defp loop(tty, term, buffer, app, canvas) do
     receive do
+      {:exit, pid} ->
+        # normal exit
+        close_tty(tty, term)
+        send(pid, {:ok, self()})
+
       {:cmd, cmd, res} ->
         app = apply_event(app, {:cmd, cmd, res})
         {tty, canvas} = render(tty, term, app, canvas)
+        loop(tty, term, buffer, app, canvas)
+
+      :SIGWINCH ->
+        query = term.query(:size)
+        tty = Tty.write!(tty, query)
         loop(tty, term, buffer, app, canvas)
 
       msg ->
@@ -63,7 +79,11 @@ defmodule Terminal.Runner do
               end
 
             {tty, canvas} = render(tty, term, app, canvas)
-            loop(tty, term, buffer, app, canvas)
+
+            case find_break(events) do
+              {:key, @ctl, "c"} -> close_tty(tty, term)
+              _ -> loop(tty, term, buffer, app, canvas)
+            end
 
           _ ->
             raise "#{inspect(msg)}"
@@ -88,6 +108,15 @@ defmodule Terminal.Runner do
     Enum.find(events, fn event ->
       case event do
         {:resize, _, _} -> true
+        _ -> false
+      end
+    end)
+  end
+
+  defp find_break(events) do
+    Enum.find(events, fn event ->
+      case event do
+        {:key, @ctl, "c"} -> true
         _ -> false
       end
     end)

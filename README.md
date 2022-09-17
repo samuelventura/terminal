@@ -63,13 +63,17 @@ Demo.run()
 - Enter should navigate to next control for all controls except buttons.
 - Dialog buttons order should be accept then cancel to take advange of enter navigation.
 - Escape should close dialogs from any current focused control (shortcut).
+- No matter the effort dirty exits are innevitable.
 
 ## Issues
 
 - konsole is not consistently responding size queries as vscode term does
+- konsole wont clear terminal content on \ec
 
 ## Future
 
+- [ ] Ctrl-c cancel
+- [ ] Ctrl-c cleanup
 - [ ] Ctrl-c handler
 - [ ] Resize handler
 - [ ] XTerm support

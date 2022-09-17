@@ -48,19 +48,19 @@ defmodule Terminal.App do
         Runner.start_link(tty: tty, term: term, app: app)
       end
 
-      def stop(pid) do
-        Process.unlink(pid)
-        Process.exit(pid, :kill)
-      end
+      def stop(pid, toms \\ 1000) do
+        # attempt effects cleanup
+        send(pid, {:exit, self()})
 
-      def run(opts \\ []) do
-        Process.flag(:trap_exit, true)
-        {:ok, pid} = start_link(opts)
-
+        # reliable code should not
+        # depend on effects cleanup
         receive do
-          {:EXIT, ^pid, reason} ->
-            Teletype.reset()
-            IO.inspect(reason)
+          {:ok, ^pid} -> :exit
+        after
+          toms ->
+            Process.unlink(pid)
+            Process.exit(pid, :kill)
+            :killed
         end
       end
     end
@@ -74,6 +74,10 @@ defmodule Terminal.App do
     exec_realize(react, func, opts, %{})
   end
 
+  def handle(state, {:key, @ctl, "c"}) do
+    {state, :ctrl_c}
+  end
+
   def handle(%{func: func, opts: opts, key: key, mote: mote, react: react}, event) do
     mote =
       case event do
@@ -83,9 +87,6 @@ defmodule Terminal.App do
         {:cmd, :callback, callback} ->
           callback.()
           mote
-
-        {:key, @ctl, "c"} ->
-          raise("Ctrl+c interrupt")
 
         _ ->
           on_event = Map.get(opts, :on_event, fn _ -> nil end)

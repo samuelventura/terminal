@@ -5,6 +5,7 @@ defmodule Terminal.Term do
   #   extended mouse
   #   blinking underline cursor (linux tty unique option)
   @callback init() :: binary()
+  @callback reset() :: binary()
   @callback query(:size) :: binary()
   @callback hide(:cursor) :: binary()
   @callback show(:cursor) :: binary()
