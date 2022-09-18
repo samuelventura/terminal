@@ -12,9 +12,6 @@ Uses [teletype](https://github.com/samuelventura/teletype) for native TTY suppor
 #from bash (no logs)
 #Ctrl+c to exit
 mix run scripts/demo.exs
-#from iex (no logs)
-#Ctrl+c to exit
-Demo.run()
 ```
 
 ## Development
@@ -26,8 +23,9 @@ Demo.run()
 # raw required to avoid translating \r to \n
 # min=0 required to answer size query immediatelly
 # fork useless because term won't answer size query on reconnection
-# escape=0x03 required to honor escape sequences
-# while true; do socat file:/dev/tty,raw,icanon=0,echo=0,escape=0x03,min=0 tcp-l:8880,reuseaddr; done
+# escape=0x03 required to honor escape sequences (ctrl-c)
+# while true; do socat file:/dev/tty,raw,icanon=0,echo=0,min=0 tcp-l:8880,reuseaddr; done
+# while true; do socat file:/dev/tty,raw,icanon=0,echo=0,min=0,escape=0x03 tcp-l:8880,reuseaddr; done
 # to exit: ctrl-z, then jobs, then kill %1
 #
 # socat file:/dev/tty,nonblock,raw,icanon=0,echo=0,min=0,escape=0x03 tcp:127.0.0.1:8880
@@ -36,12 +34,9 @@ Demo.run()
 #
 # echo -en "\033[1mThis is bold text.\033[0m" | nc 127.0.0.1 8880
 # to test server end honors escapes
-System.put_env("ReactLogs", "true")
-tty = {Socket, ip: "127.0.0.1", port: 8880}
-{:ok, pid} = Demo.start_link(tty: tty)
-Demo.stop(pid)
-#direct from iex (no logs)
-Demo.run()
+mix run scripts/demo.exs --socat
+#_build/dev/lib/teletype/priv/ptm
+mix run scripts/demo.exs --ptm
 ```
 
  ## Design
@@ -68,7 +63,6 @@ Demo.run()
 ## Issues
 
 - konsole is not consistently responding size queries as vscode term does
-- konsole wont clear terminal content on \ec
 
 ## Future
 
@@ -85,7 +79,7 @@ Demo.run()
 - [ ] Selection
 - [ ] Clipboard
 - [ ] Input scrolling
-- [ ] Check SIGWINCH+sizequery wont clash with diffing algo
+- [ ] Cursor pos after SIGWINCH/size-query
 - [x] Input validation
 - [X] Mouse
 - [X] Mouse wheel

@@ -257,4 +257,8 @@ defmodule Terminal.State do
   def get_modal(agent) do
     Agent.get(agent, fn map -> Map.get(map, :modal) end)
   end
+
+  def stop(agent) do
+    Agent.stop(agent)
+  end
 end

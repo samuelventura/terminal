@@ -4,12 +4,12 @@ defmodule Terminal.Term do
   #   clear all
   #   extended mouse
   #   blinking underline cursor (linux tty unique option)
-  @callback init() :: binary()
-  @callback reset() :: binary()
-  @callback query(:size) :: binary()
-  @callback hide(:cursor) :: binary()
-  @callback show(:cursor) :: binary()
-  @callback color(:fore | :back, color :: integer()) :: binary()
-  @callback cursor(column :: integer(), line :: integer()) :: binary()
+  @callback init() :: iodata()
+  @callback reset() :: iodata()
+  @callback query(:size) :: iodata()
+  @callback hide(:cursor) :: iodata()
+  @callback show(:cursor) :: iodata()
+  @callback color(:fore | :back, color :: integer()) :: iodata()
+  @callback cursor(column :: integer(), line :: integer()) :: iodata()
   @callback append(buffer :: binary(), data :: binary()) :: {buffer :: binary(), events :: list()}
 end

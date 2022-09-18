@@ -1,5 +1,4 @@
 defmodule Terminal.Runner do
-  use Terminal.Const
   alias Terminal.Tty
   alias Terminal.Runnable
   alias Terminal.Canvas
@@ -20,7 +19,7 @@ defmodule Terminal.Runner do
     term = Keyword.fetch!(opts, :term)
     app = Keyword.fetch!(opts, :app)
     tty = Tty.open(tty)
-    tty = init_tty(tty, term)
+    tty = Tty.write!(tty, term.init())
     {tty, size} = query_size(tty, term)
     {width, height} = size
     canvas = Canvas.new(width, height)
@@ -30,32 +29,21 @@ defmodule Terminal.Runner do
     loop(tty, term, "", app, canvas)
   end
 
-  # code cursor not shown under inverse
-  # setup code cursor to linux default
-  defp init_tty(tty, term) do
-    Tty.write!(tty, term.init())
-  end
-
-  defp close_tty(tty, term) do
-    tty = Tty.write!(tty, term.reset())
-    Tty.close(tty)
-  end
-
   defp loop(tty, term, buffer, app, canvas) do
     receive do
       {:exit, pid} ->
-        # normal exit
-        close_tty(tty, term)
-        send(pid, {:ok, self()})
-
-      {:cmd, cmd, res} ->
-        app = apply_event(app, {:cmd, cmd, res})
-        {tty, canvas} = render(tty, term, app, canvas)
-        loop(tty, term, buffer, app, canvas)
+        tty = Tty.write!(tty, term.reset())
+        Tty.close(tty)
+        if pid != nil, do: send(pid, {:ok, self()})
 
       :SIGWINCH ->
         query = term.query(:size)
         tty = Tty.write!(tty, query)
+        loop(tty, term, buffer, app, canvas)
+
+      {:cmd, cmd, res} ->
+        app = apply_event(app, {:cmd, cmd, res})
+        {tty, canvas} = render(tty, term, app, canvas)
         loop(tty, term, buffer, app, canvas)
 
       msg ->
@@ -67,10 +55,11 @@ defmodule Terminal.Runner do
             app = apply_events(app, events)
 
             # glitch on horizontal resize because of auto line wrapping
+            # this should correct any glitch from size query
             {tty, canvas} =
               case find_resize(events) do
                 {:resize, width, height} ->
-                  tty = init_tty(tty, term)
+                  tty = Tty.write!(tty, term.init())
                   canvas = Canvas.new(width, height)
                   {tty, canvas}
 
@@ -79,11 +68,7 @@ defmodule Terminal.Runner do
               end
 
             {tty, canvas} = render(tty, term, app, canvas)
-
-            case find_break(events) do
-              {:key, @ctl, "c"} -> close_tty(tty, term)
-              _ -> loop(tty, term, buffer, app, canvas)
-            end
+            loop(tty, term, buffer, app, canvas)
 
           _ ->
             raise "#{inspect(msg)}"
@@ -108,15 +93,6 @@ defmodule Terminal.Runner do
     Enum.find(events, fn event ->
       case event do
         {:resize, _, _} -> true
-        _ -> false
-      end
-    end)
-  end
-
-  defp find_break(events) do
-    Enum.find(events, fn event ->
-      case event do
-        {:key, @ctl, "c"} -> true
         _ -> false
       end
     end)

@@ -5,8 +5,9 @@ defmodule Terminal.Socket do
   # raw required to avoid translating \r to \n
   # min=0 required to answer size query immediatelly
   # fork useless because term won't answer size query on reconnection
-  # escape=0x03 required to honor escape sequences
-  # while true; do socat file:/dev/tty,raw,icanon=0,echo=0,escape=0x03,min=0 tcp-l:8880,reuseaddr; done
+  # escape=0x03 required to honor escape sequences (ctrl-c)
+  # while true; do socat file:/dev/tty,raw,icanon=0,echo=0,min=0 tcp-l:8880,reuseaddr; done
+  # while true; do socat file:/dev/tty,raw,icanon=0,echo=0,min=0,escape=0x03 tcp-l:8880,reuseaddr; done
   # to exit: ctrl-z, then jobs, then kill %1
   #
   # socat file:/dev/tty,nonblock,raw,icanon=0,echo=0,min=0,escape=0x03 tcp:127.0.0.1:8880
@@ -27,7 +28,10 @@ defmodule Terminal.Socket do
     socket
   end
 
-  def close(socket), do: :gen_tcp.close(socket)
+  def close(socket) do
+    :gen_tcp.close(socket)
+  end
+
   def handle(socket, {:tcp, socket, data}), do: {socket, true, data}
   def handle(socket, _), do: {socket, false}
 

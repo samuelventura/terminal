@@ -7,17 +7,15 @@ defmodule Terminal.Xterm do
   # macos TERM=xterm-256color
   # macos: first output line goes to bottom
   def init(),
-    do:
-      [
-        clear(:all),
-        hide(:cursor),
-        mouse(:standard),
-        mouse(:extended),
-        set(:cursor, :blinking_underline)
-      ]
-      |> IO.iodata_to_binary()
+    do: [
+      clear(:all),
+      hide(:cursor),
+      mouse(:standard),
+      mouse(:extended),
+      set(:cursor, :blinking_underline)
+    ]
 
-  def reset(), do: clear(:all)
+  def reset(), do: [clear(:all), show(:cursor)]
   # last \e[H required by macos terminal to return home
   def query(:size), do: "\e[s\e[999;999H\e[6n\e[u\e[H"
   def hide(:cursor), do: "\e[?25l"

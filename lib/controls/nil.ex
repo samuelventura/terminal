@@ -1,7 +1,7 @@
 defmodule Terminal.Nil do
   @behaviour Terminal.Control
 
-  def init(_), do: nil
+  def init(_ \\ nil), do: nil
   def bounds(_), do: {0, 0, 0, 0}
   def visible(_), do: false
   def focusable(_), do: false

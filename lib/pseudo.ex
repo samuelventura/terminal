@@ -1,31 +1,24 @@
 defmodule Terminal.Pseudo do
-  alias Teletype.Nif
   alias Teletype.Pts
 
-  # this module is only usable on beam VMs
-  # running a single app on the controlling tty
-  # do not use for ptm/pts relays
-
   def open(opts \\ []) do
-    Nif.ttysignal()
     Pts.open(opts)
   end
 
-  def handle(port, {port, {:data, data}}), do: {port, true, data}
-  def handle(port, _), do: {port, false}
+  def handle({port, _} = pts, {port, {:data, data}}), do: {pts, true, data}
+  def handle(pts, _), do: {pts, false}
 
-  def write!(port, data) do
-    Pts.write!(port, data)
-    port
+  def write!(pts, data) do
+    Pts.write!(pts, data)
+    pts
   end
 
-  def read!(port) do
-    data = Pts.read!(port)
-    {port, data}
+  def read!(pts) do
+    data = Pts.read!(pts)
+    {pts, data}
   end
 
-  def close(port) do
-    Pts.close(port)
-    Nif.ttyreset()
+  def close(pts) do
+    Pts.close(pts)
   end
 end

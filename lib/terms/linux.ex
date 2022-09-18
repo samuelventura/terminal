@@ -19,7 +19,7 @@ defmodule Terminal.Linux do
       ]
       |> IO.iodata_to_binary()
 
-  def reset(), do: clear(:all)
+  def reset(), do: [clear(:all), show(:cursor)]
   def query(:size), do: "\e[s\e[999;999H\e[6n\e[u"
   def hide(:cursor), do: "\e[?25l"
   def show(:cursor), do: "\e[?25h"

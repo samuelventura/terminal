@@ -1,10 +1,13 @@
 defmodule Terminal.App do
   use Terminal.Const
+  require Terminal.React
   alias Terminal.Canvas
   alias Terminal.Control
   alias Terminal.State
   alias Terminal.App
   alias Terminal.Nil
+
+  @break {:key, @ctl, "c"}
 
   defmacro __using__(_opts) do
     quote do
@@ -74,35 +77,44 @@ defmodule Terminal.App do
     exec_realize(react, func, opts, %{})
   end
 
-  def handle(state, {:key, @ctl, "c"}) do
-    {state, :ctrl_c}
-  end
-
   def handle(%{func: func, opts: opts, key: key, mote: mote, react: react}, event) do
-    mote =
+    {mote, func} =
       case event do
+        @break ->
+          {mote, fn _, _ -> {key, Nil, [], []} end}
+
         {:cmd, :changes, nil} ->
-          mote
+          {mote, func}
 
         {:cmd, :callback, callback} ->
           callback.()
-          mote
+          {mote, func}
 
         _ ->
           on_event = Map.get(opts, :on_event, fn _ -> nil end)
           on_event.(event)
           {mote, _cmd} = mote_handle(react, mote, event)
-          mote
+          {mote, func}
       end
 
     State.reset_state(react)
     map = Control.tree(mote, [key], %{})
-    exec_realize(react, func, opts, map)
+    {state, _} = exec_realize(react, func, opts, map)
+
+    case event do
+      @break -> {state, {:break, self(), state}}
+      _ -> {state, nil}
+    end
   end
 
   def render(%{react: react, mote: mote}, canvas) do
     key = State.get_modal(react)
     exec_render(mote, key, canvas)
+  end
+
+  def execute({:break, pid, %{react: react}}) do
+    State.stop(react)
+    send(pid, {:exit, nil})
   end
 
   def execute(_cmd), do: nil
@@ -139,11 +151,8 @@ defmodule Terminal.App do
     exec_effects(effects)
 
     case State.count_changes(react) do
-      0 ->
-        {state, nil}
-
-      _ ->
-        handle(state, {:cmd, :changes, nil})
+      0 -> {state, nil}
+      _ -> handle(state, {:cmd, :changes, nil})
     end
   end
 
