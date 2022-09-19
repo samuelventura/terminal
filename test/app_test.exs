@@ -50,7 +50,7 @@ defmodule AppTest do
   test "start, init, and stop check" do
     self_pid = self()
 
-    {:ok, listen} =
+    {:ok, _listen} =
       spawn_link(fn _ ->
         tcp_opts = [
           :binary,
