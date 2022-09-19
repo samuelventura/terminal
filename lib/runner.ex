@@ -18,33 +18,66 @@ defmodule Terminal.Runner do
     tty = Keyword.fetch!(opts, :tty)
     term = Keyword.fetch!(opts, :term)
     app = Keyword.fetch!(opts, :app)
+    break = Keyword.get(opts, :break)
     tty = Tty.open(tty)
     tty = Tty.write!(tty, term.init())
-    {tty, size} = query_size(tty, term)
-    {width, height} = size
-    canvas = Canvas.new(width, height)
-    {app, cmd} = Runnable.init(app, size: size)
-    execute_cmd(app, cmd)
-    {tty, canvas} = render(tty, term, app, canvas)
-    loop(tty, term, "", app, canvas)
+    query = term.query(:size)
+    tty = Tty.write!(tty, query)
+    size(tty, term, "", app, break)
   end
 
-  defp loop(tty, term, buffer, app, canvas) do
+  # wait for size instead of tty.read! which raises on :stop event
+  defp size(tty, term, buffer, app, break) do
     receive do
-      {:exit, pid} ->
-        tty = Tty.write!(tty, term.reset())
-        Tty.close(tty)
-        if pid != nil, do: send(pid, {:ok, self()})
+      {:stop, pid} ->
+        if pid != nil, do: send(pid, {:ok, :stop, self()})
+
+      msg ->
+        case Tty.handle(tty, msg) do
+          {tty, true, data} ->
+            {buffer, events} = term.append(buffer, data)
+
+            case find_resize(events) do
+              {:resize, width, height} ->
+                canvas = Canvas.new(width, height)
+                {app, cmd} = Runnable.init(app, size: {width, height})
+                execute_cmd(app, cmd)
+                {tty, canvas} = render(tty, term, app, canvas)
+                loop(tty, term, "", app, canvas, break)
+
+              _ ->
+                size(tty, term, buffer, app, break)
+            end
+
+          _ ->
+            size(tty, term, buffer, app, break)
+        end
+    end
+  end
+
+  defp stop(tty, term, app, canvas) do
+    app = apply_event(app, :stop)
+    {tty, _} = render(tty, term, app, canvas)
+    tty = Tty.write!(tty, term.reset())
+    Runnable.cleanup(app)
+    Tty.close(tty)
+  end
+
+  defp loop(tty, term, buffer, app, canvas, break) do
+    receive do
+      {:stop, pid} ->
+        stop(tty, term, app, canvas)
+        if pid != nil, do: send(pid, {:ok, :stop, self()})
 
       :SIGWINCH ->
         query = term.query(:size)
         tty = Tty.write!(tty, query)
-        loop(tty, term, buffer, app, canvas)
+        loop(tty, term, buffer, app, canvas, break)
 
       {:cmd, cmd, res} ->
         app = apply_event(app, {:cmd, cmd, res})
         {tty, canvas} = render(tty, term, app, canvas)
-        loop(tty, term, buffer, app, canvas)
+        loop(tty, term, buffer, app, canvas, break)
 
       msg ->
         case Tty.handle(tty, msg) do
@@ -68,7 +101,11 @@ defmodule Terminal.Runner do
               end
 
             {tty, canvas} = render(tty, term, app, canvas)
-            loop(tty, term, buffer, app, canvas)
+
+            case find_break(events, break) do
+              true -> stop(tty, term, app, canvas)
+              _ -> loop(tty, term, buffer, app, canvas, break)
+            end
 
           _ ->
             raise "#{inspect(msg)}"
@@ -98,20 +135,13 @@ defmodule Terminal.Runner do
     end)
   end
 
-  defp query_size(tty, term) do
-    query = term.query(:size)
-    tty = Tty.write!(tty, query)
-    wait_size(tty, term)
-  end
-
-  defp wait_size(tty, term) do
-    {tty, data} = Tty.read!(tty)
-    {"", events} = term.append("", data)
-    # ignores buffered events
-    case find_resize(events) do
-      {:resize, w, h} -> {tty, {w, h}}
-      _ -> wait_size(tty, term)
-    end
+  defp find_break(events, break) do
+    Enum.find_value(events, fn event ->
+      case event do
+        ^break -> true
+        _ -> false
+      end
+    end)
   end
 
   defp execute_cmd(_, nil), do: nil

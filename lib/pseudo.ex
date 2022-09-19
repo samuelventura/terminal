@@ -5,8 +5,9 @@ defmodule Terminal.Pseudo do
     Pts.open(opts)
   end
 
-  def handle({port, _} = pts, {port, {:data, data}}), do: {pts, true, data}
-  def handle(pts, _), do: {pts, false}
+  def handle(pts, msg) do
+    Pts.handle(pts, msg)
+  end
 
   def write!(pts, data) do
     Pts.write!(pts, data)

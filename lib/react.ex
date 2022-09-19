@@ -92,23 +92,19 @@ defmodule Terminal.React do
 
     {:ok, task} =
       Task.start_link(fn ->
-        stream = Stream.cycle(0..1)
+        receive do
+          :start -> nil
+        end
 
-        Enum.any?(stream, fn _ ->
-          receive do
-            _ -> nil
-          after
-            millis ->
-              send(pid, {:cmd, :callback, callfunc})
-          end
+        stream = Stream.interval(millis)
 
-          State.get_timer(react, id) == nil
+        Enum.each(stream, fn _ ->
+          send(pid, {:cmd, :callback, callfunc})
         end)
-
-        Process.unlink(pid)
       end)
 
     State.set_timer(react, id, task)
+    send(task, :start)
 
     fn ->
       # unlink requires react process
@@ -135,22 +131,25 @@ defmodule Terminal.React do
     {:ok, task} =
       Task.start_link(fn ->
         receive do
-          _ -> nil
-        after
-          millis ->
-            send(pid, {:cmd, :callback, callfunc})
+          :start -> nil
         end
 
-        Process.unlink(pid)
+        :timer.sleep(millis)
+        send(pid, {:cmd, :callback, callfunc})
       end)
 
     State.set_timer(react, id, task)
+    send(task, :start)
 
     fn ->
       # unlink requires react process
       assert_pid(react)
       task = State.clear_timer(react, id)
-      if task != nil, do: send(task, :exit)
+
+      if task != nil do
+        Process.unlink(task)
+        Process.exit(task, :kill)
+      end
     end
   end
 

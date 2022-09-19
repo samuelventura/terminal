@@ -3,7 +3,7 @@ defmodule Terminal.Runnable do
   @callback handle(state :: any(), event :: any()) :: {state :: any(), cmd :: any()}
   @callback render(state :: any(), canvas :: any()) :: canvas :: any()
   @callback execute(cmd :: any()) :: result :: any()
-  @callback stop(state :: any()) :: any()
+  @callback cleanup(state :: any()) :: any()
 
   def init({module, opts}, extras \\ []) do
     {state, cmd} = module.init(opts ++ extras)
@@ -23,7 +23,7 @@ defmodule Terminal.Runnable do
     module.execute(cmd)
   end
 
-  def stop({module, state}) do
-    module.stop(state)
+  def cleanup({module, state}) do
+    module.cleanup(state)
   end
 end

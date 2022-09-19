@@ -7,8 +7,6 @@ defmodule Terminal.App do
   alias Terminal.App
   alias Terminal.Nil
 
-  @break {:key, @ctl, "c"}
-
   defmacro __using__(_opts) do
     quote do
       @behaviour Terminal.Runnable
@@ -25,6 +23,7 @@ defmodule Terminal.App do
       alias Terminal.Checkbox
       defdelegate handle(state, event), to: App
       defdelegate render(state, canvas), to: App
+      defdelegate cleanup(state), to: App
       defdelegate execute(cmd), to: App
 
       def child_spec(opts) do
@@ -48,22 +47,27 @@ defmodule Terminal.App do
             module -> {module, []}
           end
 
-        Runner.start_link(tty: tty, term: term, app: app)
+        Runner.start_link(
+          break: {:key, @ctl, "c"},
+          term: term,
+          tty: tty,
+          app: app
+        )
       end
 
       def stop(pid, toms \\ 1000) do
         # attempt effects cleanup
-        send(pid, {:exit, self()})
+        send(pid, {:stop, self()})
 
         # reliable code should not
         # depend on effects cleanup
         receive do
-          {:ok, ^pid} -> :exit
+          {:ok, :stop, ^pid} -> :stop
         after
           toms ->
             Process.unlink(pid)
             Process.exit(pid, :kill)
-            :killed
+            :kill
         end
       end
     end
@@ -80,7 +84,7 @@ defmodule Terminal.App do
   def handle(%{func: func, opts: opts, key: key, mote: mote, react: react}, event) do
     {mote, func} =
       case event do
-        @break ->
+        :stop ->
           {mote, fn _, _ -> {key, Nil, [], []} end}
 
         {:cmd, :changes, nil} ->
@@ -99,12 +103,7 @@ defmodule Terminal.App do
 
     State.reset_state(react)
     map = Control.tree(mote, [key], %{})
-    {state, _} = exec_realize(react, func, opts, map)
-
-    case event do
-      @break -> {state, {:break, self(), state}}
-      _ -> {state, nil}
-    end
+    exec_realize(react, func, opts, map)
   end
 
   def render(%{react: react, mote: mote}, canvas) do
@@ -112,9 +111,8 @@ defmodule Terminal.App do
     exec_render(mote, key, canvas)
   end
 
-  def execute({:break, pid, %{react: react}}) do
-    State.stop(react)
-    send(pid, {:exit, nil})
+  def cleanup(state) do
+    State.stop(state.react)
   end
 
   def execute(_cmd), do: nil
