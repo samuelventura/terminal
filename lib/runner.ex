@@ -36,7 +36,7 @@ defmodule Terminal.Runner do
       msg ->
         case Tty.handle(tty, msg) do
           {_tty, :exit} ->
-            raise "#{inspect(msg)}"
+            raise "Tty closed #{inspect(msg)}"
 
           {tty, :data, data} ->
             {buffer, events} = term.append(buffer, data)
@@ -85,6 +85,9 @@ defmodule Terminal.Runner do
 
       msg ->
         case Tty.handle(tty, msg) do
+          {_tty, :exit} ->
+            raise "Tty closed #{inspect(msg)}"
+
           {tty, :data, data} ->
             Log.log("#{inspect(data)}")
             {buffer, events} = term.append(buffer, data)

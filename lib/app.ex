@@ -36,9 +36,9 @@ defmodule Terminal.App do
       def start_link(opts \\ []) do
         alias Terminal.Runner
         alias Terminal.Xterm
-        tty = Terminal.Pseudo
+        tty = Teletype.Tty
         {term, opts} = Keyword.pop(opts, :term, Xterm)
-        {tty, opts} = Keyword.pop(opts, :tty, tty)
+        {tty, opts} = Keyword.pop!(opts, :tty)
         app = {__MODULE__, opts}
 
         tty =

@@ -4,7 +4,7 @@
 alias Terminal.Tty
 
 term = Terminal.Xterm
-tty = Terminal.Pseudo
+tty = Teletype.Tty
 tty = {tty, []}
 tty = Tty.open(tty)
 tty = Tty.write!(tty, term.init())

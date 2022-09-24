@@ -1,5 +1,6 @@
-# mix run exs/demo.exs
-# _build/dev/lib/teletype/priv/ptm
+# mix run exs/demo.exs --ptm|--socat
+# --ptm : ../teletype/priv/ptm
+# --socat : socat file:/dev/tty,raw,icanon=0,echo=0,min=0,escape=0x03 tcp-l:8880,reuseaddr
 
 alias Terminal.Demo
 
@@ -19,12 +20,13 @@ Process.flag(:trap_exit, true)
 {:ok, pid} =
   case System.argv() do
     [] ->
-      Demo.start_link()
+      tty = {Teletype.Tty, []}
+      Demo.start_link(tty: tty)
 
     ["--ptm"] ->
       System.put_env("ReactLogs", "true")
       tty = "/tmp/teletype.pts"
-      tty = {Terminal.Pseudo, tty: tty}
+      tty = {Teletype.Tty, tty: tty}
       Demo.start_link(tty: tty)
 
     ["--socat"] ->

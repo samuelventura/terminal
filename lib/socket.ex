@@ -32,7 +32,8 @@ defmodule Terminal.Socket do
     :gen_tcp.close(socket)
   end
 
-  def handle(socket, {:tcp, socket, data}), do: {socket, true, data}
+  def handle(socket, {:tcp, socket, data}), do: {socket, :data, data}
+  def handle(socket, {:tcp_closed, socket}), do: {socket, :exit}
   def handle(socket, _), do: {socket, false}
 
   def read!(socket) do
