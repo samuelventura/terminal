@@ -11,7 +11,7 @@ Uses [teletype](https://github.com/samuelventura/teletype) for native TTY suppor
 ```elixir
 #from bash (no logs)
 #Ctrl+c to exit
-mix run scripts/demo.exs
+mix run exs/demo.exs
 ```
 
 ## Development
@@ -34,9 +34,9 @@ mix run scripts/demo.exs
 #
 # echo -en "\033[1mThis is bold text.\033[0m" | nc 127.0.0.1 8880
 # to test server end honors escapes
-mix run scripts/demo.exs --socat
+mix run exs/demo.exs --socat
 #_build/dev/lib/teletype/priv/ptm
-mix run scripts/demo.exs --ptm
+mix run exs/demo.exs --ptm
 ```
 
  ## Design

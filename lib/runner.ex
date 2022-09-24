@@ -2,6 +2,7 @@ defmodule Terminal.Runner do
   alias Terminal.Tty
   alias Terminal.Runnable
   alias Terminal.Canvas
+  require Log
 
   def child_spec(opts) do
     %{
@@ -34,7 +35,10 @@ defmodule Terminal.Runner do
 
       msg ->
         case Tty.handle(tty, msg) do
-          {tty, true, data} ->
+          {_tty, :exit} ->
+            raise "#{inspect(msg)}"
+
+          {tty, :data, data} ->
             {buffer, events} = term.append(buffer, data)
 
             case find_resize(events) do
@@ -81,10 +85,10 @@ defmodule Terminal.Runner do
 
       msg ->
         case Tty.handle(tty, msg) do
-          {tty, true, data} ->
-            # IO.inspect(data)
+          {tty, :data, data} ->
+            Log.log("#{inspect(data)}")
             {buffer, events} = term.append(buffer, data)
-            # IO.inspect(events)
+            Log.log("#{inspect(events)}")
             app = apply_events(app, events)
 
             # glitch on horizontal resize because of auto line wrapping
@@ -200,7 +204,7 @@ defmodule Terminal.Runner do
       _ ->
         data = Canvas.encode(term, diff)
         data = IO.iodata_to_binary(data)
-        # IO.inspect(data)
+        Log.log("#{inspect(data)}")
         tty = Tty.write!(tty, data)
         {tty, canvas2}
     end

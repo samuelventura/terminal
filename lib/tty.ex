@@ -6,7 +6,8 @@ defmodule Terminal.Tty do
 
   def handle({module, state}, msg) do
     case module.handle(state, msg) do
-      {state, true, data} -> {{module, state}, true, data}
+      {state, :data, data} -> {{module, state}, :data, data}
+      {state, :exit} -> {{module, state}, :exit}
       {state, false} -> {{module, state}, false}
     end
   end

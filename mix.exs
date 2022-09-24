@@ -21,7 +21,6 @@ defmodule Terminal.MixProject do
 
   defp deps do
     [
-      # {:teletype, path: "../teletype"}
       {:teletype, git: "https://github.com/samuelventura/teletype"}
     ]
   end
@@ -33,7 +32,7 @@ defmodule Terminal.MixProject do
   defp package do
     [
       name: :terminal,
-      files: ["lib", "test", "scripts", "mix.*", "*.exs", "*.md", ".gitignore", "LICENSE"],
+      files: ["lib", "test", "exs", "mix.*", "*.exs", "*.md", ".gitignore", "LICENSE"],
       maintainers: ["Samuel Ventura"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/samuelventura/terminal/"}
