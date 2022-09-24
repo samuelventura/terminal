@@ -28,5 +28,3 @@ alias Terminal.Frame
 alias Terminal.Select
 alias Terminal.Radio
 alias Terminal.Checkbox
-
-alias Terminal.Demo
