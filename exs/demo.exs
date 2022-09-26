@@ -31,12 +31,12 @@ Process.flag(:trap_exit, true)
 
     ["--socat"] ->
       System.put_env("ReactLogs", "true")
-      tty = {Terminal.Socket, ip: "127.0.0.1", port: 8880}
+      tty = {Terminal.Socket, host: "127.0.0.1", port: 8880}
       Demo.start_link(tty: tty)
 
     ["--rpi4"] ->
       System.put_env("ReactLogs", "true")
-      tty = {Terminal.Socket, ip: "athasha-4ad8", port: 8012}
+      tty = {Terminal.Socket, host: "athasha-4ad8", port: 8012}
       Demo.start_link(tty: tty)
   end
 

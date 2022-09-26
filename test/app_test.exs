@@ -73,7 +73,7 @@ defmodule AppTest do
         {:port, port} -> port
       end
 
-    tty = {Terminal.Socket, ip: "127.0.0.1", port: port}
+    tty = {Terminal.Socket, host: "127.0.0.1", port: port}
     {:ok, pid} = TestApp.start_link(tty: tty, pid: self_pid)
     assert_receive {:app, :init, {0, 0}}
     assert :stop == TestApp.stop(pid)
