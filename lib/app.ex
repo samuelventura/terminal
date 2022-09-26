@@ -29,7 +29,10 @@ defmodule Terminal.App do
       def child_spec(opts) do
         %{
           id: __MODULE__,
-          start: {__MODULE__, :start_link, opts}
+          start: {__MODULE__, :start_link, [opts]},
+          restart: :permanent,
+          type: :worker,
+          shutdown: 500
         }
       end
 
