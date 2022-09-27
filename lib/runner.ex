@@ -56,6 +56,11 @@ defmodule Terminal.Runner do
           _ ->
             size(tty, term, buffer, app, break)
         end
+    after
+      1000 ->
+        query = term.query(:size)
+        tty = Tty.write!(tty, query)
+        size(tty, term, buffer, app, break)
     end
   end
 
