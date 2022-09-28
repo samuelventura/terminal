@@ -43,6 +43,9 @@ defmodule Terminal.App do
         {term, opts} = Keyword.pop(opts, :term, Xterm)
         {tty, opts} = Keyword.pop!(opts, :tty)
         app = {__MODULE__, opts}
+        # supervisor restart strategy
+        {delay, opts} = Keyword.pop(opts, :delay, 0)
+        :timer.sleep(delay)
 
         tty =
           case tty do
