@@ -1,6 +1,7 @@
 defmodule Terminal.React do
   alias Terminal.State
   alias Terminal.Parser
+  require Terminal
 
   defmacro __using__(_opts) do
     quote do
@@ -159,10 +160,7 @@ defmodule Terminal.React do
 
   def log(msg) do
     if System.get_env("ReactLogs", "false") == "true" do
-      # 2022-09-10 20:02:49.684244Z
-      now = DateTime.utc_now()
-      now = String.slice("#{now}", 11..22)
-      IO.puts("#{now} #{inspect(self())} #{msg}")
+      Terminal.log(msg)
     end
   end
 

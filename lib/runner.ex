@@ -2,7 +2,7 @@ defmodule Terminal.Runner do
   alias Terminal.Tty
   alias Terminal.Runnable
   alias Terminal.Canvas
-  require Log
+  require Terminal
 
   def child_spec(opts) do
     %{
@@ -94,9 +94,9 @@ defmodule Terminal.Runner do
             raise "Tty closed #{inspect(msg)}"
 
           {tty, :data, data} ->
-            Log.log("#{inspect(data)}")
+            Terminal.debug("#{inspect(data)}")
             {buffer, events} = term.append(buffer, data)
-            Log.log("#{inspect(events)}")
+            Terminal.debug("#{inspect(events)}")
             app = apply_events(app, events)
 
             # glitch on horizontal resize because of auto line wrapping
@@ -212,7 +212,7 @@ defmodule Terminal.Runner do
       _ ->
         data = Canvas.encode(term, diff)
         data = IO.iodata_to_binary(data)
-        Log.log("#{inspect(data)}")
+        Terminal.debug("#{inspect(data)}")
         tty = Tty.write!(tty, data)
         {tty, canvas2}
     end
