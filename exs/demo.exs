@@ -36,7 +36,7 @@ Process.flag(:trap_exit, true)
 
     ["--rpi4"] ->
       System.put_env("ReactLogs", "true")
-      tty = {Terminal.Socket, host: "athasha-4ad8", port: 8012}
+      tty = {Terminal.Socket, host: "athasha-4ad8", port: 8010}
       Demo.start_link(tty: tty)
   end
 
