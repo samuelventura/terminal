@@ -37,10 +37,7 @@ defmodule Terminal.App do
       end
 
       def start_link(opts \\ []) do
-        alias Terminal.Runner
-        alias Terminal.Xterm
-        tty = Teletype.Tty
-        {term, opts} = Keyword.pop(opts, :term, Xterm)
+        {term, opts} = Keyword.pop(opts, :term, Terminal.Xterm)
         {tty, opts} = Keyword.pop!(opts, :tty)
         app = {__MODULE__, opts}
         # supervisor restart strategy
@@ -53,7 +50,7 @@ defmodule Terminal.App do
             module -> {module, []}
           end
 
-        Runner.start_link(
+        Terminal.Runner.start_link(
           break: {:key, @ctl, "c"},
           term: term,
           tty: tty,

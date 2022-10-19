@@ -1,6 +1,7 @@
-# mix run exs/demo.exs --ptm|--socat
+# mix run exs/demo.exs --ptm|--socat|--rpi4
 # --ptm : ../teletype/priv/ptm
 # --socat : socat file:/dev/tty,raw,icanon=0,echo=0,min=0,escape=0x03 tcp-l:8880,reuseaddr
+# --rpi4 : requires athasha runtime + drivers app
 
 alias Terminal.Demo
 
