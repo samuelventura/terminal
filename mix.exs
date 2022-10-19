@@ -23,7 +23,7 @@ defmodule Terminal.MixProject do
     [
       # compiles ok even with missing dep
       # testes ok, added for demo purposes
-      {:teletype, path: "../teletype", runtime: false}
+      # {:teletype, path: "../teletype", runtime: false}
     ]
   end
 
