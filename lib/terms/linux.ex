@@ -2,6 +2,8 @@ defmodule Terminal.Linux do
   @behaviour Terminal.Term
   use Terminal.Const
 
+  # for embedded linux+nerves only
+
   # https://man7.org/linux/man-pages/man4/console_codes.4.html
   # cursor styles not supported
   # limited text styles support
@@ -13,8 +15,6 @@ defmodule Terminal.Linux do
       [
         clear(:all),
         hide(:cursor),
-        mouse(:standard),
-        mouse(:extended),
         set(:cursor, :blinking_underline)
       ]
       |> IO.iodata_to_binary()
@@ -33,12 +33,11 @@ defmodule Terminal.Linux do
   end
 
   defp clear(:all), do: "\ec"
-  # standard required to enable extended
-  defp mouse(:standard), do: "\e[?1000h"
-  defp mouse(:extended), do: "\e[?1006h"
   defp set(:cursor, :blinking_underline), do: ""
 
   @size_re ~r/^\e\[(\d+);(\d+)R/
+  @mouse_down_re ~r/^\e\[<(\d+);(\d+);(\d+)M/
+  @mouse_up_re ~r/^\e\[<(\d+);(\d+);(\d+)m/
 
   # thinkpad/corsair usb us keyboard
   @escapes [
@@ -112,6 +111,8 @@ defmodule Terminal.Linux do
 
   defp scan("\e" <> _ = buffer) do
     nil
+    |> mouse_ex(buffer, @mouse_up_re, @mouse_up)
+    |> mouse_ex(buffer, @mouse_down_re, @mouse_down)
     |> escapes(buffer)
     |> resize(buffer)
     |> altkey(buffer)
@@ -133,6 +134,21 @@ defmodule Terminal.Linux do
     end
   end
 
+  defp mouse_ex(nil, buffer, regex, code) do
+    case Regex.run(regex, buffer) do
+      [prefix, s, x, y] ->
+        s = String.to_integer(s)
+        x = String.to_integer(x) - 1
+        y = String.to_integer(y) - 1
+        {prefix, {:mouse, s, x, y, code}}
+
+      nil ->
+        nil
+    end
+  end
+
+  defp mouse_ex(prev, _, _, _), do: prev
+
   defp escapes(nil, buffer) do
     Enum.find_value(@escapes, fn {prefix, code} ->
       case String.starts_with?(buffer, prefix) do
@@ -144,6 +160,8 @@ defmodule Terminal.Linux do
       end
     end)
   end
+
+  defp escapes(prev, _), do: prev
 
   defp resize(nil, buffer) do
     case Regex.run(@size_re, buffer) do
