@@ -1,4 +1,10 @@
-# mix run exs/main.exs
+# elixir exs/main.exs
+# exit with ctrl+c
+
+Mix.install([
+  {:teletype, git: "https://github.com/samuelventura/teletype"},
+  {:terminal, git: "https://github.com/samuelventura/terminal"}
+])
 
 defmodule Terminal.Demo do
   use Terminal.App

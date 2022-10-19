@@ -1,7 +1,13 @@
-# mix run exs/demo.exs --ptm|--socat|--rpi4
+# elixir exs/demo.exs --ptm|--socat|--rpi4
 # --ptm : ../teletype/priv/ptm
 # --socat : socat file:/dev/tty,raw,icanon=0,echo=0,min=0,escape=0x03 tcp-l:8880,reuseaddr
 # --rpi4 : requires athasha runtime + drivers app
+# exit with ctrl+c
+
+Mix.install([
+  {:teletype, git: "https://github.com/samuelventura/teletype"},
+  {:terminal, git: "https://github.com/samuelventura/terminal"}
+])
 
 alias Terminal.Demo
 
