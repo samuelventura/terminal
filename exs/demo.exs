@@ -1,5 +1,13 @@
-# mix run exs/demo.exs
-# _build/dev/lib/teletype/priv/ptm
+# elixir exs/demo.exs --ptm|--socat|--rpi4
+# --ptm : ../teletype/priv/ptm
+# --socat : socat file:/dev/tty,raw,icanon=0,echo=0,min=0,escape=0x03 tcp-l:8880,reuseaddr
+# --rpi4 : requires athasha runtime + drivers app
+# exit with ctrl+c
+
+Mix.install([
+  {:teletype, git: "https://github.com/samuelventura/teletype"},
+  {:terminal, git: "https://github.com/samuelventura/terminal"}
+])
 
 alias Terminal.Demo
 
@@ -19,17 +27,23 @@ Process.flag(:trap_exit, true)
 {:ok, pid} =
   case System.argv() do
     [] ->
-      Demo.start_link()
+      tty = {Teletype.Tty, []}
+      Demo.start_link(tty: tty)
 
     ["--ptm"] ->
       System.put_env("ReactLogs", "true")
       tty = "/tmp/teletype.pts"
-      tty = {Terminal.Pseudo, tty: tty}
+      tty = {Teletype.Tty, tty: tty}
       Demo.start_link(tty: tty)
 
     ["--socat"] ->
       System.put_env("ReactLogs", "true")
-      tty = {Terminal.Socket, ip: "127.0.0.1", port: 8880}
+      tty = {Terminal.Socket, host: "127.0.0.1", port: 8880}
+      Demo.start_link(tty: tty)
+
+    ["--rpi4"] ->
+      System.put_env("ReactLogs", "true")
+      tty = {Terminal.Socket, host: "athasha-4ad8", port: 8010}
       Demo.start_link(tty: tty)
   end
 

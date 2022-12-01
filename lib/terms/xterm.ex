@@ -35,7 +35,6 @@ defmodule Terminal.Xterm do
   defp set(:cursor, :blinking_underline), do: "\e[3 q"
 
   @size_re ~r/^\e\[(\d+);(\d+)R/
-  @mouse_re ~r/^\e\[M(.)(.)(.)/
   @mouse_down_re ~r/^\e\[<(\d+);(\d+);(\d+)M/
   @mouse_up_re ~r/^\e\[<(\d+);(\d+);(\d+)m/
 
@@ -122,7 +121,6 @@ defmodule Terminal.Xterm do
 
   defp scan("\e" <> _ = buffer) do
     nil
-    |> mouse(buffer, @mouse_re)
     |> mouse_ex(buffer, @mouse_up_re, @mouse_up)
     |> mouse_ex(buffer, @mouse_down_re, @mouse_down)
     |> escapes(buffer)
@@ -143,19 +141,6 @@ defmodule Terminal.Xterm do
       code ->
         {flag, key} = code
         {single, {:key, flag, key}}
-    end
-  end
-
-  defp mouse(nil, buffer, regex) do
-    case Regex.run(regex, buffer) do
-      [prefix, s, x, y] ->
-        [s] = String.to_charlist(s)
-        [x] = String.to_charlist(x)
-        [y] = String.to_charlist(y)
-        {prefix, {:mouse, s - 32, x - 32 - 1, y - 32 - 1}}
-
-      nil ->
-        nil
     end
   end
 

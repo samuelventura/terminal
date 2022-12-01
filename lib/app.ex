@@ -29,17 +29,20 @@ defmodule Terminal.App do
       def child_spec(opts) do
         %{
           id: __MODULE__,
-          start: {__MODULE__, :start_link, opts}
+          start: {__MODULE__, :start_link, [opts]},
+          restart: :permanent,
+          type: :worker,
+          shutdown: 500
         }
       end
 
       def start_link(opts \\ []) do
-        alias Terminal.Runner
-        alias Terminal.Xterm
-        tty = Terminal.Pseudo
-        {term, opts} = Keyword.pop(opts, :term, Xterm)
-        {tty, opts} = Keyword.pop(opts, :tty, tty)
+        {term, opts} = Keyword.pop(opts, :term, Terminal.Xterm)
+        {tty, opts} = Keyword.pop!(opts, :tty)
         app = {__MODULE__, opts}
+        # supervisor restart strategy
+        {delay, opts} = Keyword.pop(opts, :delay, 0)
+        :timer.sleep(delay)
 
         tty =
           case tty do
@@ -47,7 +50,7 @@ defmodule Terminal.App do
             module -> {module, []}
           end
 
-        Runner.start_link(
+        Terminal.Runner.start_link(
           break: {:key, @ctl, "c"},
           term: term,
           tty: tty,

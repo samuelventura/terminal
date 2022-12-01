@@ -21,7 +21,9 @@ defmodule Terminal.MixProject do
 
   defp deps do
     [
-      {:teletype, git: "https://github.com/samuelventura/teletype"}
+      # compiles ok even with missing dep
+      # testes ok, added for demo purposes
+      # {:teletype, path: "../teletype", runtime: false}
     ]
   end
 

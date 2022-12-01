@@ -1,10 +1,15 @@
-# mix run exs/keymon.exs
-# exit with Ctrl+c
+# elixir exs/keymon.exs
+# exit with ctrl+c
+
+Mix.install([
+  {:teletype, git: "https://github.com/samuelventura/teletype"},
+  {:terminal, git: "https://github.com/samuelventura/terminal"}
+])
 
 alias Terminal.Tty
 
 term = Terminal.Xterm
-tty = Terminal.Pseudo
+tty = Teletype.Tty
 tty = {tty, []}
 tty = Tty.open(tty)
 tty = Tty.write!(tty, term.init())

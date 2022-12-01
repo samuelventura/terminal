@@ -16,15 +16,15 @@ defmodule Terminal.Socket do
   #
   # echo -en "\033[1mThis is bold text.\033[0m" | nc 127.0.0.1 8880
   # to test server end honors escapes
-  def open(ip: ip, port: port) do
+  def open(host: host, port: port) do
     opts = [
       :binary,
       packet: :raw,
       active: true
     ]
 
-    ip = String.to_charlist(ip)
-    {:ok, socket} = :gen_tcp.connect(ip, port, opts)
+    host = String.to_charlist(host)
+    {:ok, socket} = :gen_tcp.connect(host, port, opts)
     socket
   end
 
@@ -32,7 +32,8 @@ defmodule Terminal.Socket do
     :gen_tcp.close(socket)
   end
 
-  def handle(socket, {:tcp, socket, data}), do: {socket, true, data}
+  def handle(socket, {:tcp, socket, data}), do: {socket, :data, data}
+  def handle(socket, {:tcp_closed, socket}), do: {socket, :exit}
   def handle(socket, _), do: {socket, false}
 
   def read!(socket) do
